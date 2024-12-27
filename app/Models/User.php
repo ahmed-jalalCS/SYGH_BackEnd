@@ -21,7 +21,34 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'emailVerifiedAt',
+        'role',
+        'remember_token',
+        'updated_at',
+        'created_at',
+
     ];
+    public function librarystaffs()
+    {
+        return $this->hasMany(LibrarayStaff::class,'user_id');
+    }
+    public function supervisors()
+    {
+        return $this->hasMany(Supervisor::class,'user_id');
+    }
+    public function students()
+    {
+        return $this->hasMany(Student::class,'user_id');
+    }
+    public function evaluates()
+    {
+        return $this->hasMany(Evaluate::class, 'user_id');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'user_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.
