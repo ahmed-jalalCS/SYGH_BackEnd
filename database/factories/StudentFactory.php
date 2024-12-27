@@ -20,12 +20,11 @@ class StudentFactory extends Factory
     public function definition(): array
     {
         return [
-            // 'studentUnid' => fake()->unique()->numberBetween(1000000, 9999999), // Random unique student ID
-            'studentUnid' => fake()->numberBetween(1000000, 9999999), // Random unique student ID
-            'isTemLeder' => fake()->boolean(10), // 10% chance of being a team leader
-            'user_id' => User::factory(), // Associate with a User
-            'department_id' => Department::factory(), // Associate with a Department
-            'project_id' => Project::factory(), // Associate with a Project
+            'studentUnid' => fake()->unique()->numberBetween(1000000, 9999999),
+            'isTemLeder' => fake()->boolean(10),
+            'user_id' => User::where('role', 'Student')->inRandomOrder()->value('id'), // Reference an existing User ID with role 'Student'
+            'department_id' => Department::inRandomOrder()->value('id'), // Reference an existing Department ID
+            'project_id' => Project::inRandomOrder()->value('id'), // Reference an existing Project ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

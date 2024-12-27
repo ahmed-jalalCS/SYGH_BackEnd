@@ -18,9 +18,8 @@ class DepartmentFactory extends Factory
     public function definition(): array
     {
         return [
-            // 'name' => fake()->unique()->word() . ' Department', // Generate a unique department name
-            'name' => fake()->word() . ' Department', // Generate a unique department name
-            'college_id' => College::factory(), // Associate with a College
+            'name' => fake()->word() . ' Department',
+            'college_id' => College::inRandomOrder()->value('id'), // Reference an existing College ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

@@ -18,9 +18,8 @@ class CollegeFactory extends Factory
     public function definition(): array
     {
         return [
-            // 'name' => fake()->unique()->word() . ' College', // Generate a unique college name
-            'name' => fake()->word() . ' College', // Generate a unique college name
-            'universitie_id' => University::factory(), // Associate with a University
+            'name' => fake()->word() . ' College',
+            'universitie_id' => University::inRandomOrder()->value('id'), // Reference an existing University ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

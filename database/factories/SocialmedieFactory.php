@@ -18,8 +18,8 @@ class SocialmedieFactory extends Factory
     public function definition(): array
     {
         return [
-            'linkes' => fake()->url(), // Generates a random URL for social media link
-            'student_id' => Student::factory(), // Associate with a Student
+            'linkes' => fake()->url(),
+            'student_id' => Student::inRandomOrder()->value('id'), // Reference an existing Student ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

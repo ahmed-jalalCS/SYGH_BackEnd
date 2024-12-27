@@ -21,16 +21,14 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            // 'title' => fake()->unique()->sentence(3), // Unique project title
-            'title' => fake()->sentence(3), // Unique project title
-            'description' => fake()->paragraph(), // Random project description
-            'videoUrl' => fake()->optional()->url(), // Optional video URL
-            'lbraryStatus' => fake()->boolean(50), // Random library status with 50% chance
-            'supervisorStatus' => fake()->boolean(50), // Random supervisor status with 50% chance
-            // 'projectYear' => Carbon::createFromDate(Carbon::now()->year, 1, 1)->toDateString(),// Current year for project
-            'projectYear' => fake()->date("Y-m-d"),// Current year for project
-            'department_id' => Department::factory(), // Associate with a Department
-            'supervisor_id' => Supervisor::factory(), // Associate with a Supervisor
+            'title' => fake()->sentence(3),
+            'description' => fake()->paragraph(),
+            'videoUrl' => fake()->optional()->url(),
+            'lbraryStatus' => fake()->boolean(50),
+            'supervisorStatus' => fake()->boolean(50),
+            'projectYear' => fake()->date("Y-m-d"),
+            'department_id' => Department::inRandomOrder()->value('id'), // Reference an existing Department ID
+            'supervisor_id' => Supervisor::inRandomOrder()->value('id'), // Reference an existing Supervisor ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

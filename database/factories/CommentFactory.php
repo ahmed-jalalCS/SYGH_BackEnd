@@ -19,9 +19,9 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         return [
-            'body' => fake()->paragraph(), // Generates a random comment body (paragraph)
-            'user_id' => User::factory(), // Associate with a User
-            'project_id' => Project::factory(), // Associate with a Project
+            'body' => fake()->paragraph(),
+            'user_id' => User::inRandomOrder()->value('id'), // Reference an existing User ID
+            'project_id' => Project::inRandomOrder()->value('id'), // Reference an existing Project ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

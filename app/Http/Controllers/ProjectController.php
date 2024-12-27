@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -11,7 +12,9 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+      $projects = Project::all();
+      return response()->json($projects);
+      
     }
 
     /**
@@ -19,7 +22,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -27,7 +30,16 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $ProjectData=$request->validate([
+            'title'=>'required',
+            'description'=>'required',
+            'videoUrl'=>'nullable',
+            'projectYear'=>'required|numeric',
+        ]);
+        $ProjectData['department_id']=1;
+        $ProjectData['supervisor_id']=2;
+        $ProjectData['created_at']=1;
+        $ProjectData['updated_at']=3;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\College;
 use Illuminate\Http\Request;
 
 class CollegeController extends Controller
@@ -9,9 +10,11 @@ class CollegeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(int $id)
     {
-        //
+        $college=College::where('universitie_id',$id)->get();
+
+        return response()->json($college);
     }
 
     /**
@@ -25,9 +28,9 @@ class CollegeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request,int $id)
     {
-        //
+         
     }
 
     /**

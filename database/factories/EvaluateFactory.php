@@ -19,9 +19,9 @@ class EvaluateFactory extends Factory
     public function definition(): array
     {
         return [
-            'rating' => fake()->numberBetween(1, 5), // Random rating between 1 and 5
-            'user_id' => User::factory(), // Associate with a User
-            'project_id' => Project::factory(), // Associate with a Project
+            'rating' => fake()->numberBetween(1, 5),
+            'user_id' => User::inRandomOrder()->value('id'), // Reference an existing User ID
+            'project_id' => Project::inRandomOrder()->value('id'), // Reference an existing Project ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

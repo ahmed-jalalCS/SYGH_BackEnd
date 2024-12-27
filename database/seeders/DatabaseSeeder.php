@@ -23,17 +23,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-         User::factory(70)->create();
-         University::factory(5)->create();
-         College::factory(6)->create();
-         Department::factory(10)->create();
-         LibrarayStaff::factory(6)->create();
-         Supervisor::factory(10)->create();
-         Project::factory(20)->create();
-         Student::factory(54)->create();
-         Socialmedie::factory(10)->create();
-         Evaluate::factory(40)->create();
-         Comment::factory(30)->create();
+            User::factory()->count(70)->create();
+            University::factory()->count(10)->create();
+            College::factory()->count(6)->create();
+            Department::factory()->count(10)->create();
+            LibrarayStaff::factory()->count(6)->create();
+            Supervisor::factory()->count(10)->create();
+            Project::factory()->count(20)->create();
+            Student::factory()->count(54)->create();
+            Socialmedie::factory()->count(10)->create();
+            Evaluate::factory()->count(40)->create();
+            Comment::factory()->count(30)->create();
     
     }
 }
