@@ -6,11 +6,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory,
+        Notifiable,
+        HasApiTokens; //! Note: `HasApiTokens` is very very important if you want to return an [AccessToken] when register and login operaions 
 
     /**
      * The attributes that are mass assignable.
@@ -21,12 +24,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'emailVerifiedAt',
-        'role',
-        'remember_token',
-        'updated_at',
-        'created_at',
-
     ];
     public function librarystaffs()
     {
