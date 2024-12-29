@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Department;
+use App\Models\Supervisor;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -10,11 +12,15 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(int $id)
     {
-      $projects = Project::all();
-      return response()->json($projects);
-      
+             
+    }
+
+    public function DepartmentProjects(int $id){
+        
+        $Projects=Project::where('department_id',$id);
+        return response()->json($Projects);
     }
 
     /**
@@ -24,30 +30,56 @@ class ProjectController extends Controller
     {
         
     }
+    public function GetDepartmentIdAndSupervisorId(int $id){
 
+        $userCollegeId = $id;
+        $department = Department::whereRelation('college', 'id', $userCollegeId)->get();
+        $supervisorData =Supervisor::where('college_id', $userCollegeId) 
+                      ->with(['user:id,name']) 
+                      ->get(); 
+                      $supervisors = $supervisorData->map(function ($supervisor) {
+                        return [
+                            'supervisor_id' => $supervisor->id, 
+                            'name' => $supervisor->user->name,  
+                                              
+                        ];
+                    });
+    return response()->json([
+        'success' => true,
+        'department'=>$department,
+        'supervisor'=>$supervisors,
+    ], 200);
+
+    }
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $ProjectData=$request->validate([
-            'title'=>'required',
-            'description'=>'required',
-            'videoUrl'=>'nullable',
-            'projectYear'=>'required|numeric',
-        ]);
-        $ProjectData['department_id']=1;
-        $ProjectData['supervisor_id']=2;
-        $ProjectData['created_at']=1;
-        $ProjectData['updated_at']=3;
-    }
+{
+    $validatedData=$request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'videoUrl' => 'nullable|url',
+        'projectYear' => 'required',
+        'department_id' => 'required',
+        'supervisor_id'=>'required',
+    ]);
 
+
+    $datainsert=Project::create($validatedData);
+    return response()->json([
+        'success'=>true,
+        'data'=>$datainsert,
+    ]);
+    
+    }
+    
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        //
+        
     }
 
     /**
@@ -55,7 +87,7 @@ class ProjectController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        
     }
 
     /**

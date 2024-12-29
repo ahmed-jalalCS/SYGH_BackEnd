@@ -42,5 +42,5 @@ class Project extends Model
         {
             return $this->hasMany(Comment::class, 'project_id');
         }
-        
+
 }

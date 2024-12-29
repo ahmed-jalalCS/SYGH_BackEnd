@@ -28,14 +28,15 @@ class User extends Authenticatable
         'created_at',
 
     ];
-    public function librarystaffs()
-    {
-        return $this->hasMany(LibrarayStaff::class,'user_id');
-    }
     public function supervisors()
     {
         return $this->hasMany(Supervisor::class,'user_id');
     }
+    public function librarystaffs()
+    {
+        return $this->hasMany(LibrarayStaff::class,'user_id');
+    }
+
     public function students()
     {
         return $this->hasMany(Student::class,'user_id');

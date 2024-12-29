@@ -10,7 +10,6 @@ class Supervisor extends Model
     /** @use HasFactory<\Database\Factories\SupervisorFactory> */
     use HasFactory;
     protected $fillable = [
-        'name',
         'supervisorDgree',
         'college_id',
         'user_id',

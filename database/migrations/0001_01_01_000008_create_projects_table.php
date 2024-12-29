@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->string('videoUrl')->nullable();
             $table->boolean('lbraryStatus')->default(0);
             $table->boolean('supervisorStatus')->default(0);
