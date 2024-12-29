@@ -138,7 +138,8 @@ return [
         App\Providers\AuthServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         // App\Providers\Filament\AdminPanelProvider::class,
-        App\Providers\RouteServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,Spatie\Permission\PermissionServiceProvider::class, // add spatie provider 
+
     ])->toArray(),
 
 ];

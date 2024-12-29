@@ -3,17 +3,21 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,
         Notifiable,
-        HasApiTokens; //! Note: `HasApiTokens` is very very important if you want to return an [AccessToken] when register and login operaions 
+        HasApiTokens, //! Note: `HasApiTokens` is very very important if you want to return an [AccessToken] when register and login operaions 
+        HasRoles; // is from Spatie library.
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +29,12 @@ class User extends Authenticatable
         'email',
         'password',
     ];
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->hasRole(["Super-Admin", "Admin"]);
+    }
+
     public function librarystaffs()
     {
         return $this->hasMany(LibrarayStaff::class,'user_id');
