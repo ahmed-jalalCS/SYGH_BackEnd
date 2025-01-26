@@ -42,5 +42,44 @@ class Project extends Model
         {
             return $this->hasMany(Comment::class, 'project_id');
         }
-        
+        public function document(){
+
+            return $this->hasOne(Document::class);
+        }
+
+        public function getProjectDetails()
+        {
+            // Load only the necessary columns for the relationships
+            $this->load([
+                'document:id,project_id,pathDo',
+                'supervisor.user:id,name',
+                'students.user:id,name,email',
+                'students.socialmedie:id,student_id,linkes',
+                'comments.user:id,name',
+            ]);
+
+            return [
+                'title' => $this->title,
+                'description' => $this->description,
+                'videoUrl' => $this->videoUrl,
+                'projectYear' => $this->projectYear,
+                'document_path' => $this->document->pathDo ?? null, // Path of the document
+                'supervisorName' => $this->supervisor->user->name ?? null, // Supervisor's name
+                'students' => $this->students->map(function ($student) {
+                    return [
+                        'name' => $student->user->name ?? null,
+                        'email' => $student->user->email ?? null,
+                        'social_links' => $student->socialmedie->pluck('linkes'), // Social media links
+                    ];
+                }),
+                'comments' => $this->comments->map(function ($comment) {
+                    return [
+                        'body' => $comment->body,
+                        'user_name' => $comment->user->name ?? null, // Name of the commenter
+                    ];
+                }),
+            ];
+        }
+
+
 }

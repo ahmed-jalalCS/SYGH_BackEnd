@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
@@ -11,7 +14,7 @@ class CommentController extends Controller
      */
     public function index()
     {
-        //
+
     }
 
     /**
@@ -25,9 +28,22 @@ class CommentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request,Project $project)
     {
-        //
+
+        $data=$request->validate([
+            'body'=>'required',
+        ]);
+
+        $project->comments()->create([
+            'body' => $data['body'],
+            'user_id' =>Auth::user()->id,
+        ]);
+
+        return response()->json([
+          'state'=>'success',
+          'message'=>'doen',
+        ]);
     }
 
     /**
@@ -49,16 +65,31 @@ class CommentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
-        //
+        $comment = Comment::findOrFail($id);
+        $data = $request->validate([
+            'body'=>'required',
+        ]);
+        $comment->update($data);
+        return response()->json([
+            'state' => 'success',
+            'message' => 'done',
+        ]);
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        //
+        $comment = Comment::findOrFail($id);
+        $comment->delete();
+        return response()->json([
+            'state' => 'success',
+            'message' => 'Comment deleted successfully',
+        ]);
+
     }
 }

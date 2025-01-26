@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\College;
 use Illuminate\Http\Request;
 
 class CollegeController extends Controller
@@ -11,54 +12,59 @@ class CollegeController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $colleges = College::select('id', 'name', 'universitie_id')->get();
+        return response()->json(['success' => true, 'data' => $colleges], 200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, int $id)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $validatedData['universitie_id'] = $id;
+        $college = College::create($validatedData);
+
+        return response()->json(['success' => true, 'data' => $college], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $college = College::findOrFail($id);
+        return response()->json(['success' => true, 'data' => $college], 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
-        //
+
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'universitie_id' => 'sometimes|required|exists:universities,id',
+        ]);
+
+        $college = College::findOrFail($id);
+        $college->update($validatedData);
+
+        return response()->json(['success' => true, 'data' => $college], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        //
+        $college = College::findOrFail($id);
+        $college->delete();
+
+        return response()->json(['success' => true, 'message' => 'College deleted successfully'], 200);
     }
 }
