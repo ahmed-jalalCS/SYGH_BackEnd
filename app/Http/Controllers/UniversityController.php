@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\College;
 use App\Models\University;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -15,9 +16,11 @@ class UniversityController extends Controller
     public function index()
     {
 
-        $university=University::all();
-        return response()->json($university);
-
+        $universities = University::with(['colleges' => function ($query) {
+            $query->select('id', 'name', 'universitie_id'); // Ensure 'university_id' is included for relationship
+        }])->get();
+        // we return the name of college for the design
+        return response()->json($universities);
 
     }
 
@@ -66,8 +69,8 @@ class UniversityController extends Controller
      */
     public function show(int $id)
     {
-        $university=University::find($id);
-        return response()->json($university);
+        $universityCollege=College::where('universitie_id',$id)->get();
+        return response()->json($universityCollege);
 
     }
 

@@ -90,5 +90,6 @@ Route::controller(DocumentController::class)->group(function(){
 });
 
 Route::controller(ProjectController::class)->group(function (){
+    
     Route::get('project/{id}/detials','show');
 });

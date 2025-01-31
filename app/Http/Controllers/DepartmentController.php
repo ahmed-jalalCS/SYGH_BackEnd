@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\Project;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
@@ -51,8 +52,14 @@ class DepartmentController extends Controller
      */
     public function show(int $id)
     {
-        $department = Department::with(['college', 'projects', 'students'])->findOrFail($id);
-          return response()->json(['success' => true, 'data' => $department], 200);
+
+        $departmentProject = Project::select('id','title','description')
+                                    ->where('department_id', $id)
+                                    ->where('supervisorStatus', true)
+                                    ->where('lbraryStatus', true)
+                                    ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
+                                    ->get();
+          return response()->json(['success' => true, 'data' => $departmentProject], 200);
     }
 
     /**
@@ -85,6 +92,5 @@ class DepartmentController extends Controller
         $department = Department::findOrFail($id);
         $department->delete();
         return response()->json(['success' => true, 'message' => 'Department deleted successfully'], 200);
-
     }
 }
