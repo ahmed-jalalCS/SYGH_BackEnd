@@ -66,7 +66,6 @@ class AuthController extends Controller
                 'message' => 'Invalid credentials'
             ], 401);
         }
-
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -81,13 +80,13 @@ class AuthController extends Controller
     }
 
     public function logout(Request $request)
-    {
-        // Revoke all tokens...
-        $request->user()->tokens()->delete();
+{
+    // Revoke only the current token (best practice)
+    $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Successfully logged out'
-        ]);
-    }
+    return response()->json([
+        'status' => true,
+        'message' => 'Successfully logged out'
+    ], 200);
+}
 } 

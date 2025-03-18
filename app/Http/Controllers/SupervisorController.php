@@ -23,7 +23,14 @@ class SupervisorController extends Controller
         $supervisors = Supervisor::where('college_id', $collegeId)
             ->with('user:id,name')
             ->get(['id', 'user_id', 'supervisorDgree']);    
-        return view('Supervisors.all-supervisors', ['supervisors' => $supervisors]);
+
+            return response()->json([
+                'success'=>true,
+                'message'=>'جميع المشرفين',
+                'data'=>$supervisors,
+
+            ]);
+        // return view('Supervisors.all-supervisors', ['supervisors' => $supervisors]);
     
     }
     /**
@@ -31,7 +38,7 @@ class SupervisorController extends Controller
      */
     public function create()
     {
-        return view('Supervisors.new-supervisor');
+        // return view('Supervisors.new-supervisor');
     }
 
     /**

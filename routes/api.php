@@ -33,27 +33,27 @@ Route::get('/user', function (Request $request) {
 
 Route::controller(UniversityController::class)->group(function(){
 
-    Route::get('/universities','index');
-    Route::post('/university','store');
-    Route::get('/university/{id}','show');
-    Route::put('/university/{id}','update');
-    Route::delete('/university/{id}','destroy');
+    Route::get('/universities','index');// all universities
+    Route::post('/university','store');// new un
+    Route::get('/university/{id}','show');// all college of the university
+    Route::put('/university/{id}','update');// update
+    Route::delete('/university/{id}','destroy');// delete
 });
 Route::controller(CollegeController::class)->group(function(){
 
-    Route::get('/colleges','index');
-    Route::post('/college/{id}','store');
-    Route::get('/college/{id}','show');
-    Route::put('/college/{id}','update');
-    Route::delete('/college/{id}','destroy');
+    Route::get('/colleges','index');// all college and its forgien key
+    Route::post('/college/{id}','store');// new college
+    Route::get('/college/{id}','show');// all department of this college
+    Route::put('/college/{id}','update');// update
+    Route::delete('/college/{id}','destroy');// delete
 });
 Route::controller(DepartmentController::class)->group(function (){
 
-    Route::get('/departments','index');
-    Route::post('/department/{id}','store');
-    Route::get('/department/{id}','show');
-    Route::put('/department/{id}','update');
-    Route::delete('/department/{id}','destroy');
+    Route::get('/departments','index');//
+    Route::post('/department/{id}','store');// new department
+    Route::get('/department/{id}','show');// show all project of department
+    Route::put('/department/{id}','update');// up
+    Route::delete('/department/{id}','destroy');//dele
 
 });
 Route::controller(CommentController::class)->group(function (){
@@ -66,8 +66,7 @@ Route::controller(CommentController::class)->group(function (){
 });
 
 Route::controller(UserController::class)->group(function (){
-    Route::get('/users','index');
-    Route::post('/newUser','store');
+    Route::post('/newUser','store');// create new user
     Route::get('user/information/{id}','show');// we should update the code
     Route::delete('/delete/user/{id}','destroy');// we should update the code
 
@@ -90,6 +89,6 @@ Route::controller(DocumentController::class)->group(function(){
 });
 
 Route::controller(ProjectController::class)->group(function (){
-    
+
     Route::get('project/{id}/detials','show');
 });

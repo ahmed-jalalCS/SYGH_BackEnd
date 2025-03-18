@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\College;
+use App\Models\Department;
 use Illuminate\Http\Request;
 
 class CollegeController extends Controller
@@ -28,7 +29,7 @@ class CollegeController extends Controller
         $validatedData['universitie_id'] = $id;
         $college = College::create($validatedData);
 
-        return response()->json(['success' => true, 'data' => $college], 201);
+        return response()->json(['success' => true, 'message' => 'تمت الإضافة بنجاح'], 201);
     }
 
     /**
@@ -36,8 +37,8 @@ class CollegeController extends Controller
      */
     public function show(int $id)
     {
-        $college = College::findOrFail($id);
-        return response()->json(['success' => true, 'data' => $college], 200);
+        $collegeDepartment = Department::where('college_id',$id)->get();
+        return response()->json(['success' => true, 'data' => $collegeDepartment ], 200);
     }
 
     /**
@@ -50,12 +51,13 @@ class CollegeController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'universitie_id' => 'sometimes|required|exists:universities,id',
         ]);
-
         $college = College::findOrFail($id);
         $college->update($validatedData);
-
-        return response()->json(['success' => true, 'data' => $college], 200);
+        return response()->json(['success' => true, 'message' => 'تم التعديل بنجاح'], 200);
     }
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -65,6 +67,8 @@ class CollegeController extends Controller
         $college = College::findOrFail($id);
         $college->delete();
 
-        return response()->json(['success' => true, 'message' => 'College deleted successfully'], 200);
+        return response()->json(['success' => true, 'message' => ' تم حذف الكلية بنجاح '], 200);
     }
+
+
 }

@@ -19,9 +19,9 @@ class LibrarayStaffFactory extends Factory
     public function definition(): array
     {
         return [
-            'isSuperAdmin' => fake()->boolean(20), // 20% chance of being a super admin
-            'user_id' => User::factory(), // Associate with a User
-            'college_id' => College::factory(), // Associate with a College
+            'isSuperAdmin' => fake()->boolean(20),
+            'user_id' => User::where('role', 'Library Staff')->inRandomOrder()->value('id'), // Reference an existing User ID with role 'Library Staff'
+            'college_id' => College::inRandomOrder()->value('id'), // Reference an existing College ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

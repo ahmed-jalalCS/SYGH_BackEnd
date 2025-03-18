@@ -31,15 +31,11 @@ class CommentController extends Controller
     public function store(Request $request,Project $project)
     {
 
-        $data=$request->validate([
-            'body'=>'required',
-        ]);
-
+        $data=$request->validate(['body'=>'required']);
         $project->comments()->create([
             'body' => $data['body'],
             'user_id' =>Auth::user()->id,
         ]);
-
         return response()->json([
           'state'=>'success',
           'message'=>'doen',

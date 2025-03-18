@@ -20,6 +20,9 @@ class DepartmentController extends Controller
             'college.university:id,name', // Include the related University model with specific fields
         ])
         ->get();
+        if ($departments->isEmpty()) {
+            return response()->json(['message' => 'لايوجد اقسام']);
+        }
 
        return response()->json(['success' => true, 'data' => $departments], 200);
 
@@ -59,6 +62,10 @@ class DepartmentController extends Controller
                                     ->where('lbraryStatus', true)
                                     ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
                                     ->get();
+        if ($departmentProject->isEmpty()) 
+        {
+          return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
+        }                        
           return response()->json(['success' => true, 'data' => $departmentProject], 200);
     }
 

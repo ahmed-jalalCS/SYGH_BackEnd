@@ -12,9 +12,26 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(int $id)
+    public function index()
     {
+        $projects = Project::with('evaluates')
+        ->select('id', 'title', 'description', 'projectYear')
+        ->where('lbraryStatus', 1)
+        ->where('supervisorStatus', 1)
+        ->get()
+        ->map(function ($project) {
+            $averageRating = $project->evaluates->avg('rating'); // Calculate the average rating using Eloquent
 
+            return [
+                'title' => $project->title,
+                'description' => $project->description,
+                'projectYear' => $project->projectYear,
+                'average_rating' => round($averageRating, 2) ?? 0, // Handle cases where no ratings exist
+            ];
+        });
+
+    return response()->json($projects);
+    
     }
 
     public function DepartmentProjects(int $id){
@@ -55,24 +72,24 @@ class ProjectController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    $validatedData=$request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'videoUrl' => 'nullable|url',
-        'projectYear' => 'required',
-        'department_id' => 'required',
-        'supervisor_id'=>'required',
-    ]);
+    {
+        $validatedData=$request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'videoUrl' => 'nullable|url',
+            'projectYear' => 'required',
+            'department_id' => 'required',
+            'supervisor_id'=>'required',
+        ]);
 
 
-    $datainsert=Project::create($validatedData);
-    return response()->json([
-        'success'=>true,
-        'data'=>$datainsert,
-    ]);
+        $datainsert=Project::create($validatedData);
+        return response()->json([
+            'success'=>true,
+            'message'=>'تمت الاضافة بنجاح ',
+        ]);
 
-    }
+        }
 
     /**
      * Display the specified resource.
@@ -108,11 +125,38 @@ class ProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        // Validate incoming request
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'videoUrl' => 'nullable|url',
+            'projectYear' => 'required',
+            'department_id' => 'required',
+            'supervisor_id' => 'required',
+        ]);
+    
+        // Find project by ID
+        $project = Project::find($id);
+    
+        // Check if project exists
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المشروع غير موجود',
+            ], 404);
+        }
+    
+        // Update project
+        $project->update($validatedData);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'تم التحديث بنجاح',
+        ]);
     }
-
+    
     /**
      * Remove the specified resource from storage.
      */

@@ -44,20 +44,10 @@ class UniversityController extends Controller
         }
         $validatedData['image']=$imagePath;
         $university=University::create($validatedData);
-
-    // Build the full public URL for the image
-    $publicImageUrl = $imagePath ? asset('storage/' . $imagePath) : null;
-
     // Return a JSON response with the university data
     return response()->json([
         'success' => true,
-        'message' => 'University added successfully.',
-        'data' => [
-            'id' => $university->id,
-            'name' => $university->name,
-            'address' => $university->address,
-            'image_url' => $publicImageUrl, // Include the full public URL for the image
-        ],
+        'message' => 'تمت الإضافة بنجاح',
     ], 201);
 }
 
@@ -85,11 +75,32 @@ class UniversityController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    public function update(Request $request, int $id)
+    {
+        $university = University::findOrFail($id);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-     public function update(Request $request, int $id)
-     {
+        if ($request->hasFile('image')) {
+            if ($university->image) {
+                Storage::disk('public')->delete($university->image);
+             }
+           $imagePath = $request->file('image')->store('universities', 'public');
+           $validatedData['image'] = $imagePath;
+        } else {
+            $validatedData['image'] = $university->image;
+        }
+        $university->update($validatedData);
 
-     }
+        return response()->json([
+            'success' => true,
+            'message' => 'تم التعديل بنجاح ',
+        ], 200);
+    }
+
 
 
 

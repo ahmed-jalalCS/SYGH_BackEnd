@@ -84,7 +84,6 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['success'=>true,'message'=>'لايمكنك حذف الحساب لارتباطة في بيانات اخرى',]);
         }
-
         $user->delete();
         return response()->json([
             'success'=>true,

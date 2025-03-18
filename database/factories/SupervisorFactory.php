@@ -19,9 +19,9 @@ class SupervisorFactory extends Factory
     public function definition(): array
     {
         return [
-            'supervisorDgree' => fake()->optional()->randomElement(['PhD', 'Master', 'Bachelor']), // Random degree or null
-            'user_id' => User::factory(), // Associate with a User
-            'college_id' => College::factory(), // Associate with a College
+            'supervisorDgree' => fake()->optional()->randomElement(['PhD', 'Master', 'Bachelor']),
+            'user_id' => User::where('role', 'Supervisor')->inRandomOrder()->value('id'), // Reference an existing User ID with role 'Supervisor'
+            'college_id' => College::inRandomOrder()->value('id'), // Reference an existing College ID
             'created_at' => now(),
             'updated_at' => now(),
         ];

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Evaluate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EvaluateController extends Controller
 {
@@ -25,14 +27,21 @@ class EvaluateController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $project_id)
     {
-        //
+       $data=$request->validate([
+            'rating' => 'required|numeric|min:1|max:5', // Ensure rating is between 1 and 5
+        ]);
+    
+        $data['user_id']=1;
+        $data['project_id']=$project_id;
+        $evaluate = Evaluate::create($data);
+        return response()->json([
+            'message' => 'تم ',
+            'evaluate' => $evaluate,
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //

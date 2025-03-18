@@ -25,7 +25,6 @@ class Project extends Model
         {
             return $this->belongsTo(Department::class, 'department_id');
         }
-
         public function supervisor()
         {
             return $this->belongsTo(Supervisor::class, 'supervisor_id');
@@ -44,7 +43,7 @@ class Project extends Model
         }
         public function document(){
 
-            return $this->hasOne(Document::class);
+            return $this->hasOne(Document::class,'project_id', 'id');
         }
 
         public function getProjectDetails()
