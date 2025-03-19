@@ -23,3 +23,8 @@ Route::controller(ProjectController::class)->group(function () {
 Route::controller(DocumentController::class)->group(function(){
 Route::get('/document','index');
 });
+
+Route::controller(\App\Http\Controllers\LibraryStaffController::class)->group(function () {
+    Route::get('/librarystaff','index');
+
+});

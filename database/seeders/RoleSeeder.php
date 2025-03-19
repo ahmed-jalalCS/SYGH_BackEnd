@@ -13,6 +13,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+//        php artisan db:seed --class=RoleSeeder
         $roles = [
             ['name' => 'Admin', 'slug' => 'admin'],
             ['name' => 'Library Staff', 'slug' => 'library_staff'],

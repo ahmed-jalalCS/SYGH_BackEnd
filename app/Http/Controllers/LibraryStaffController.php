@@ -17,6 +17,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
+
 class LibraryStaffController extends Controller
 {
     /**
@@ -24,7 +25,10 @@ class LibraryStaffController extends Controller
      */
     public function index()
     {
-        //
+        $user_id =User::where('role_id', Role::where('name', 'Library Staff')->value('id'))
+        ->inRandomOrder()
+        ->value('id');
+        echo $user_id;
     }
 
     /**
