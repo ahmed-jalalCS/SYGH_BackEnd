@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\University;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+//use Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Hash;
+use mysql_xdevapi\Exception;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 class UserController extends Controller
 {
     /**
@@ -91,6 +96,44 @@ class UserController extends Controller
 
         ]);
 
+    }
 
+    public function createAdmin(Request $request,int $id){
+
+        try {
+
+            $university=University::findOrFail($id);
+            if ($university->user_id !==0)
+                {
+                    return response()->json([
+                        'success'=>true,
+                        'message'=>'هذة الجامعة لديها مسؤل بالفعل'
+                    ],200);
+                }
+            $validator= Validator::make($request->all(),[
+                'name'=> 'required',
+                'email'=>'required|email',
+                'password'=>'required',
+            ]);
+            if($validator->fails()){
+                return response()->json(['success'=>false,'errors'=>$validator->errors()]);
+            }
+
+            $ValidateData=$validator->validated();
+            $ValidateData['role_id'] = 1;
+            $ValidateData['password'] = Hash::make($ValidateData['password']);
+            $user = User::create($ValidateData);
+            $university->user_id = $user->id;
+            $university->save();
+            return response()->json([
+                'success'=>true,
+                 'message'=>'تم الاظافه بنجاح',
+                'data'=>$user
+            ],200);
+        }catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => "لايوجد جامعة"
+            ], 404);
+        }
     }
 }

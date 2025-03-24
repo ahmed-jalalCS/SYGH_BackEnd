@@ -10,11 +10,27 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        // Check if the user is authenticated and is an admin
-        if (!Auth::check() || !Auth::user()->role) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
 
-        return $next($request);
+        if ( Auth::check() && Auth::user()->role->slug =='admin') {
+            return $next($request);
+        }
+        else
+        {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'لست مصرح للوصول'
+            ],403);
+        }
+        // Check if the user is authenticated and is an admin
+
+//        if (!Auth::check() || !Auth::user()->role) {
+//        }
+
+//        if(Auth::user()){
+//            return response(['error' => 'Unauthorized'], 403);
+//        }
+//        return $next($request);
+
+
     }
 }

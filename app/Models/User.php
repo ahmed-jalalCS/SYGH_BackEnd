@@ -16,7 +16,7 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory,
         Notifiable,
-        HasApiTokens, //! Note: `HasApiTokens` is very very important if you want to return an [AccessToken] when register and login operaions 
+        HasApiTokens, //! Note: `HasApiTokens` is very very important if you want to return an [AccessToken] when register and login operaions
         HasRoles; // is from Spatie library.
 
     /**
@@ -28,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'role_id',
     ];
 
     public function canAccessPanel(Panel $panel): bool
@@ -63,7 +64,7 @@ class User extends Authenticatable implements FilamentUser
      * @var list<string>
      */
     protected $hidden = [
-        
+
         'remember_token',
     ];
 
@@ -88,4 +89,5 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->role && $this->role->slug === $roleName;
     }
+
 }

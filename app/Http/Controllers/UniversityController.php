@@ -7,6 +7,7 @@ use App\Models\University;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class UniversityController extends Controller
 {
@@ -31,28 +32,60 @@ class UniversityController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Allow optional image uploads
-        ]);
 
-        $imagePath = null;
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string',
+                'address' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
 
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('universities', 'public'); // Store the image in the 'public/universities' folder
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'errors' => $validator->errors()], 400);
+            }
+
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('universities', 'public');
+            }
+
+            $validatedData = $request->only(['name', 'address']);
+            $validatedData['image'] = $imagePath;
+
+            $university = University::create($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تمت الإضافة بنجاح',
+                'data' => $university,
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء معالجة الطلب.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        $validatedData['image']=$imagePath;
-        $university=University::create($validatedData);
-    // Return a JSON response with the university data
-    return response()->json([
-        'success' => true,
-        'message' => 'تمت الإضافة بنجاح',
-    ], 201);
 }
 
+    public function getAllUniversities(Request $request)
+    {
+        $universities = University::with('colleges')
+            ->paginate($request->query('per_page', 10));
+        return response()->json(['success' => true, 'data' => $universities]);
+    }
 
-
+    public function viewUniversity($id)
+    {
+        $university = University::with(['colleges.departments'])->find($id);
+        if (!$university) {
+            return response()->json([
+                'success' => false,
+                'message'=>'لايوجد جامعة'
+            ],200);
+        }
+        return response()->json(['success' => true, 'data' => $university]);
+    }
 
     /**
      * Display the specified resource.
@@ -77,28 +110,46 @@ class UniversityController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        $university = University::findOrFail($id);
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        try {
+            $university = University::find($id);
+            if (!$university) {
+                return response()->json([
+                    'success' => false,
+                    'message'=>'لايوجد جامعة'
+                ],200);
+            }
+            $validator = Validator::make($request->all(), [
+                'name' => 'sometimes|string|max:255',
+                'address' => 'sometimes|string|max:255',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 400);
+            }
+            $validatedData = $validator->validated();
+            if ($request->hasFile('image')) {
+                if ($university->image) {
+                    Storage::disk('public')->delete($university->image);
+                }
+                $validatedData['image'] = $request->file('image')->store('universities', 'public');
+            }
+            $university->update($validatedData);
+            return response()->json([
+                'success' => true,
+                'message' => 'تم التعديل بنجاح',
+                'data' => $university,
+            ], 200);
 
-        if ($request->hasFile('image')) {
-            if ($university->image) {
-                Storage::disk('public')->delete($university->image);
-             }
-           $imagePath = $request->file('image')->store('universities', 'public');
-           $validatedData['image'] = $imagePath;
-        } else {
-            $validatedData['image'] = $university->image;
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-        $university->update($validatedData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'تم التعديل بنجاح ',
-        ], 200);
     }
 
 
@@ -109,15 +160,33 @@ class UniversityController extends Controller
      */
     public function destroy(int $id)
     {
-        $university = University::findOrFail($id);
-        if ($university->image) {
+
+        try {
+            $university = University::find($id);
+            if (!$university) {
+                return response()->json([
+                    'success' => false,
+                    'message'=>'لايوجد جامعة'
+                ],200);
+            }
+            if ($university->colleges()->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لايمكن حذف هذه الجامعة'
+                ], 400);
+            }
+            if ($university->image) {
             Storage::disk('public')->delete($university->image);
+           }
+            $university->delete();
+            return response()->json(['success' => true,'message' => 'تم الحذف بنجاح',]);
+        }catch (\Exception $e){
+            return response()->json([
+               'success' => false,
+                'message' => 'حدث خطأ أثناء الحذف ',
+                'error' => $e->getMessage()
+            ],500);
         }
-        $university->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'University deleted successfully.',
-        ], 200);
     }
 
 }

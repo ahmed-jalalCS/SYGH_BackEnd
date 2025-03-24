@@ -96,7 +96,7 @@ class RoleResource extends Resource
 
         if ($user->hasRole('Admin')) {
             // Admin can see all roles except Super Admin
-            return parent::getEloquentQuery()->where('name', '!=', 'Super-Admin');
+            return parent::getEloquentQuery()->where('name', '==', 'admin');
         }
 
         // Default query for other roles (optional)

@@ -13,6 +13,7 @@ class University extends Model
         'name',
         'address',
         'image',
+        'user_id',
         'updated_at',
         'created_at',
     ];
@@ -21,7 +22,11 @@ class University extends Model
      {
          return $this->hasMany(College::class, 'universitie_id');
      }
-     
+    public function user()
+    {
+        return $this->hasOne(User::class,'role_id');
+    }
+
 
 
 }

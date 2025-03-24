@@ -14,8 +14,10 @@ use App\Http\Controllers\SocialmediaController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\LibraryStaffController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/test', function () {
+
     return response()->json(['message' => 'API routes are working']);
 });
 
@@ -125,6 +127,34 @@ Route::controller(ProjectController::class)->group(function (){
 // });
 
 
+Route::prefix('/superadmin')->controller(SuperAdminController::class)->middleware(['auth:sanctum', 'super_admin'])->group(function () {
+
+    Route::controller(UniversityController::class)->group(function () {
+        Route::get('/universities', 'getAllUniversities');
+        Route::post('/university', 'store');
+        Route::get('/university/{id}', 'viewUniversity');
+        Route::put('/university/{id}', 'update');
+        Route::delete('/university/{id}', 'destroy');
+    });
+    Route::controller(UserController::class)->group(function () {
+       Route::post('/user/{id}','createAdmin');
+
+    });
+
+});
+
+
+Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:sanctum','admin'])->group(function () {
+
+    Route::controller(CollegeController::class)->group(function () {
+       Route::get('/colleges', 'getAllColleges');
+       Route::get('/colleges/{id}', 'show');
+       Route::post('/colleges/{id}', 'store');
+       Route::put('/colleges/{id}', 'update');
+       Route::delete('/colleges/{id}', 'destroy');
+    });
+
+});
 // Route::middleware(['auth:sanctum', 'super_admin'])->group(function () {
 //   // Users
 //   Route::get('/users', [SuperAdminController::class, 'getAllUsers']);
@@ -213,84 +243,85 @@ Route::middleware(['auth:sanctum', 'super_admin'])->group(function () {
     });
 
     // Colleges Management
-    Route::prefix('admin/colleges')->group(function () {
-        Route::get('/', [SuperAdminController::class, 'getAllColleges']);
-        Route::post('/', [SuperAdminController::class, 'createCollege']);
-        Route::get('/{id}', [SuperAdminController::class, 'viewCollege']);
-        Route::put('/{id}', [SuperAdminController::class, 'updateCollege']);
-        Route::delete('/{id}', [SuperAdminController::class, 'deleteCollege']);
-    });
+//    Route::prefix('admin/colleges')->group(function () {
+//        Route::get('/', [SuperAdminController::class, 'getAllColleges']);
+//        Route::post('/', [SuperAdminController::class, 'createCollege']);
+//        Route::get('/{id}', [SuperAdminController::class, 'viewCollege']);
+//        Route::put('/{id}', [SuperAdminController::class, 'updateCollege']);
+//        Route::delete('/{id}', [SuperAdminController::class, 'deleteCollege']);
+//    });
 
     // Library Staff Management
-    Route::prefix('admin/library-staff')->group(function () {
-        Route::get('/', [SuperAdminController::class, 'getAllLibraryStaff']);
-        Route::post('/', [SuperAdminController::class, 'createLibraryStaff']);
-        Route::get('/{id}', [SuperAdminController::class, 'viewLibraryStaff']);
-        Route::put('/{id}', [SuperAdminController::class, 'updateLibraryStaff']);
-        Route::delete('/{id}', [SuperAdminController::class, 'deleteLibraryStaff']);
-    });
-
-    // Projects Management
-    Route::prefix('admin/projects')->group(function () {
-        Route::get('/', [SuperAdminController::class, 'getAllProjects']);
-        Route::post('/', [SuperAdminController::class, 'createProject']);
-        Route::get('/{id}', [SuperAdminController::class, 'viewProject']);
-        Route::put('/{id}', [SuperAdminController::class, 'updateProject']);
-        Route::delete('/{id}', [SuperAdminController::class, 'deleteProject']);
-    });
+//    Route::prefix('admin/library-staff')->group(function () {
+//        Route::get('/', [SuperAdminController::class, 'getAllLibraryStaff']);
+//        Route::post('/', [SuperAdminController::class, 'createLibraryStaff']);
+//        Route::get('/{id}', [SuperAdminController::class, 'viewLibraryStaff']);
+//        Route::put('/{id}', [SuperAdminController::class, 'updateLibraryStaff']);
+//        Route::delete('/{id}', [SuperAdminController::class, 'deleteLibraryStaff']);
+//    });
+//
+//    // Projects Management
+//    Route::prefix('admin/projects')->group(function () {
+//        Route::get('/', [SuperAdminController::class, 'getAllProjects']);
+//        Route::post('/', [SuperAdminController::class, 'createProject']);
+//        Route::get('/{id}', [SuperAdminController::class, 'viewProject']);
+//        Route::put('/{id}', [SuperAdminController::class, 'updateProject']);
+//        Route::delete('/{id}', [SuperAdminController::class, 'deleteProject']);
+//    });
 
     // Import Projects
-    Route::post('/admin/import-projects', [SuperAdminController::class, 'importProjects']);
-});
+//    Route::post('/admin/import-projects', [SuperAdminController::class, 'importProjects']);
+//});
 
 // for uploading the excel file:
-Route::post('/import-projects', [SuperAdminController::class, 'importProjects'])
-    ->middleware(['auth:sanctum', 'super_admin']);
+//Route::post('/import-projects', [SuperAdminController::class, 'importProjects'])
+//    ->middleware(['auth:sanctum', 'super_admin']);
+//
+//
+//
+//// Library-Staff Endpoints:
+//Route::controller(LibraryStaffController::class)->middleware(['auth:sanctum', 'library_staff'])->group(function () {
+//    // Dashboard and Import
+//
+//    Route::get('/library/dashboard/stats', 'getDashboardStats');
+//    Route::post('/library/import-projects','importProjects');
 
-
-
-// Library-Staff Endpoints:
-Route::middleware(['auth:sanctum', 'library_staff'])->group(function () {
-    // Dashboard and Import
-    Route::get('/library/dashboard/stats', [LibraryStaffController::class, 'getDashboardStats']);
-    Route::post('/library/import-projects', [LibraryStaffController::class, 'importProjects']);
-
-    // Student Management
-    Route::prefix('library/students')->group(function () {
-        Route::get('/', [LibraryStaffController::class, 'getStudents']);
-        Route::post('/', [LibraryStaffController::class, 'createStudent']);
-        Route::put('/{id}', [LibraryStaffController::class, 'updateStudent']);
-        Route::delete('/{id}', [LibraryStaffController::class, 'deleteStudent']);
-    });
-
-
-    // Project Management
-    Route::prefix('library/projects')->group(function () {
-        Route::get('/', [LibraryStaffController::class, 'getProjects']);
-        Route::post('/', [LibraryStaffController::class, 'createProject']);
-        Route::get('/{id}', [LibraryStaffController::class, 'viewProject']);
-        Route::put('/{id}', [LibraryStaffController::class, 'updateProject']);
-        Route::delete('/{id}', [LibraryStaffController::class, 'deleteProject']);
-    });
-
-
-    // Supervisor Management
-    Route::prefix('library/supervisors')->group(function () {
-        Route::get('/', [LibraryStaffController::class, 'getSupervisors']);
-        Route::post('/', [LibraryStaffController::class, 'createSupervisor']);
-        Route::get('/{id}', [LibraryStaffController::class, 'viewSupervisor']);
-        Route::put('/{id}', [LibraryStaffController::class, 'updateSupervisor']);
-        Route::delete('/{id}', [LibraryStaffController::class, 'deleteSupervisor']);
-    });
-
-
-    // Department Management
-    Route::prefix('library/departments')->group(function () {
-        Route::get('/', [LibraryStaffController::class, 'getDepartments']);
-        Route::post('/', [LibraryStaffController::class, 'createDepartment']);
-        Route::get('/{id}', [LibraryStaffController::class, 'viewDepartment']);
-        Route::put('/{id}', [LibraryStaffController::class, 'updateDepartment']);
-        Route::delete('/{id}', [LibraryStaffController::class, 'deleteDepartment']);
-    });
+//    // Student Management
+//    Route::prefix('library/students')->group(function () {
+//        Route::get('/', [LibraryStaffController::class, 'getStudents']);
+//        Route::post('/', [LibraryStaffController::class, 'createStudent']);
+//        Route::put('/{id}', [LibraryStaffController::class, 'updateStudent']);
+//        Route::delete('/{id}', [LibraryStaffController::class, 'deleteStudent']);
+//    });
+//
+//
+//    // Project Management
+//    Route::prefix('library/projects')->group(function () {
+//        Route::get('/', [LibraryStaffController::class, 'getProjects']);
+//        Route::post('/', [LibraryStaffController::class, 'createProject']);
+//        Route::get('/{id}', [LibraryStaffController::class, 'viewProject']);
+//        Route::put('/{id}', [LibraryStaffController::class, 'updateProject']);
+//        Route::delete('/{id}', [LibraryStaffController::class, 'deleteProject']);
+//    });
+//
+//
+//    // Supervisor Management
+//    Route::prefix('library/supervisors')->group(function () {
+//        Route::get('/', [LibraryStaffController::class, 'getSupervisors']);
+//        Route::post('/', [LibraryStaffController::class, 'createSupervisor']);
+//        Route::get('/{id}', [LibraryStaffController::class, 'viewSupervisor']);
+//        Route::put('/{id}', [LibraryStaffController::class, 'updateSupervisor']);
+//        Route::delete('/{id}', [LibraryStaffController::class, 'deleteSupervisor']);
+//    });
+//
+//
+//    // Department Management
+//    Route::prefix('library/departments')->group(function () {
+//        Route::get('/', [LibraryStaffController::class, 'getDepartments']);
+//        Route::post('/', [LibraryStaffController::class, 'createDepartment']);
+//        Route::get('/{id}', [LibraryStaffController::class, 'viewDepartment']);
+//        Route::put('/{id}', [LibraryStaffController::class, 'updateDepartment']);
+//        Route::delete('/{id}', [LibraryStaffController::class, 'deleteDepartment']);
+//    });
 });
 

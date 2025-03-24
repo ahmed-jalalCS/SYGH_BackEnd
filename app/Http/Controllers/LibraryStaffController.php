@@ -25,10 +25,120 @@ class LibraryStaffController extends Controller
      */
     public function index()
     {
-        $user_id =User::where('role_id', Role::where('name', 'Library Staff')->value('id'))
-        ->inRandomOrder()
-        ->value('id');
-        echo $user_id;
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح بك'
+                ], 401);
+            }
+
+            $libraryStaff = LibraryStaff::where('user_id', $user->id)->first();
+            if (!$libraryStaff) {
+                return response()->json([
+                    'success' => false,
+                    'message'=>'غير موجود هذا الموظف',
+//                    'message' => 'Library staff record not found'
+                ], 404);
+            }
+
+            $collegeId = $libraryStaff->college_id;
+
+            $stats = [
+                'projects' => [
+                    'total' => Project::whereHas('department', function ($query) use ($collegeId) {
+                        $query->where('college_id', $collegeId);
+                    })->count(),
+
+                    'by_department' => Department::where('college_id', $collegeId)
+                        ->withCount('projects')
+                        ->having('projects_count', '>', 0)
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->projects_count
+                            ];
+                        })
+                ],
+
+                'students' => [
+                    'total' => Student::whereHas('department', function ($query) use ($collegeId) {
+                        $query->where('college_id', $collegeId);
+                    })->count(),
+
+                    'by_department' => Department::where('college_id', $collegeId)
+                        ->withCount('students')
+                        ->having('students_count', '>', 0)
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->students_count
+                            ];
+                        })
+                ],
+
+                'supervisors' => [
+                    'total' => Supervisor::where('college_id', $collegeId)->count(),
+                    'by_department' => Department::where('college_id', $collegeId)
+                        ->withCount(['projects as supervisors_count' => function ($query) {
+                            $query->select(DB::raw('COUNT(DISTINCT supervisor_id)'));
+                        }])
+                        ->having('supervisors_count', '>', 0)
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->supervisors_count
+                            ];
+                        })
+                ],
+
+                'departments' => [
+                    'total' => Department::where('college_id', $collegeId)->count(),
+                    'departments' => Department::where('college_id', $collegeId)
+                        ->withCount('projects')
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->projects_count
+                            ];
+                        })
+                ],
+
+                'recent_activity' => [
+                    'latest_projects' => Project::whereHas('department', function ($query) use ($collegeId) {
+                        $query->where('college_id', $collegeId);
+                    })
+                        ->with(['supervisor.user:id,name', 'department:id,name'])
+                        ->latest()
+                        ->take(5)
+                        ->get()
+                        ->map(function ($project) {
+                            return [
+                                'id' => $project->id,
+                                'title' => $project->title,
+                                'supervisor' => $project->supervisor->user->name,
+                                'department' => $project->department->name,
+                                'created_at' => $project->created_at
+                            ];
+                        })
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -102,7 +212,7 @@ class LibraryStaffController extends Controller
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthenticated'
+                    'message' => 'غير مصرح بك'
                 ], 401);
             }
 
@@ -110,7 +220,8 @@ class LibraryStaffController extends Controller
             if (!$libraryStaff) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Library staff record not found'
+                    'message'=>'غير موجود هذا الموظف',
+//                    'message' => 'Library staff record not found'
                 ], 404);
             }
 
