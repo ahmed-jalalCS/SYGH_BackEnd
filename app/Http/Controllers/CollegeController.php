@@ -18,8 +18,22 @@ class CollegeController extends Controller
     public function index()
     {
         $colleges = College::select('id', 'name', 'universitie_id')->get();
+        if ($colleges->isEmpty()) {
+            return response()->json(['message' => 'لايوجد كليات ']);
+        }
         return response()->json(['success' => true, 'data' => $colleges], 200);
+
     }
+    public function show(int $id)
+    {
+        $collegeDepartment = Department::where('college_id',$id)->get();
+
+        if ($collegeDepartment->isEmpty()) {
+            return response()->json(['message' => 'لايوجد اقسام لهذي الكلية'], 404);
+        }
+        return response()->json(['success' => true, 'data' => $collegeDepartment ], 200);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -69,7 +83,7 @@ class CollegeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function showAdmin(int $id)
     {
         try {
             $college=College::find($id);

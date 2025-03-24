@@ -17,9 +17,8 @@ return new class extends Migration
                 $table->string('slug')->unique(); // Ensuring slug is created
                 $table->timestamps();
             });
-
-            // Insert default roles with slug
             DB::table('roles')->insert([
+                ['name'=>'SuperAdmin','slug'=>'super_admin'],
                 ['name' => 'Admin', 'slug' => 'admin'],
                 ['name' => 'Library Staff', 'slug' => 'library_staff'],
                 ['name' => 'Supervisor', 'slug' => 'supervisor'],

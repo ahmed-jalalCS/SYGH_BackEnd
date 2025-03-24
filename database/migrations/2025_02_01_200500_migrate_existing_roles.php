@@ -9,6 +9,7 @@ return new class extends Migration
     {
         // First, ensure roles exist
         DB::table('roles')->insertOrIgnore([
+            ['name'=>'SuperAdmin','slug'=>'super_admin'],
             ['name' => 'Admin', 'slug' => 'admin'],
             ['name' => 'Library Staff', 'slug' => 'library_staff'],
             ['name' => 'Supervisor', 'slug' => 'supervisor'],
@@ -21,7 +22,7 @@ return new class extends Migration
             foreach ($users as $user) {
                 $roleSlug = strtolower(str_replace(' ', '_', $user->role));
                 $role = DB::table('roles')->where('slug', $roleSlug)->first();
-                
+
                 if ($role) {
                     DB::table('users')
                         ->where('id', $user->id)
@@ -35,4 +36,4 @@ return new class extends Migration
     {
         // No need for down method as we can't reliably reverse this operation
     }
-}; 
+};

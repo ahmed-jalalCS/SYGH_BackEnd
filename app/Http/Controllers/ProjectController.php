@@ -31,7 +31,7 @@ class ProjectController extends Controller
         });
 
     return response()->json($projects);
-    
+
     }
 
     public function DepartmentProjects(int $id){
@@ -97,14 +97,17 @@ class ProjectController extends Controller
     public function show(int  $id)
     {
 
-           $project = Project::find($id);
-           if (!$project) {
-               return response()->json(['message' => 'Project not found'], 404);
-           }
-
-           $projectDetails = $project->getProjectDetails();
-
-           return response()->json($projectDetails);
+        //supervisorStatus
+        $project = Project::where('id', $id)
+            ->where('supervisorStatus', true)
+            ->where('lbraryStatus', true)
+            ->first();
+        if (!$project)
+        {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+        $projectDetails = $project->getProjectDetails();
+        return response()->json($projectDetails);
 
 
         //  project 'title','description','videoUrl',and the doucment pathDo of the this project from the document table
@@ -136,10 +139,10 @@ class ProjectController extends Controller
             'department_id' => 'required',
             'supervisor_id' => 'required',
         ]);
-    
+
         // Find project by ID
         $project = Project::find($id);
-    
+
         // Check if project exists
         if (!$project) {
             return response()->json([
@@ -147,16 +150,16 @@ class ProjectController extends Controller
                 'message' => 'المشروع غير موجود',
             ], 404);
         }
-    
+
         // Update project
         $project->update($validatedData);
-    
+
         return response()->json([
             'success' => true,
             'message' => 'تم التحديث بنجاح',
         ]);
     }
-    
+
     /**
      * Remove the specified resource from storage.
      */

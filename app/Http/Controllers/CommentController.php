@@ -37,8 +37,8 @@ class CommentController extends Controller
             'user_id' =>Auth::user()->id,
         ]);
         return response()->json([
-          'state'=>'success',
-          'message'=>'doen',
+            'state'=>'success',
+            'message'=>'تم بنجاح ',
         ]);
     }
 
@@ -64,16 +64,30 @@ class CommentController extends Controller
     public function update(Request $request, int $id)
     {
         $comment = Comment::findOrFail($id);
+
+        // Check if the authenticated user owns the comment
+        if (Auth::id() !== $comment->user_id) {
+            return response()->json([
+                'state' => 'error',
+                'message' => 'ليس لديك صلاحية لتعديل هذا التعليق',
+            ], 403); // 403 Forbidden
+        }
+
+        // Validate request data
         $data = $request->validate([
-            'body'=>'required',
-        ]);
-        $comment->update($data);
-        return response()->json([
-            'state' => 'success',
-            'message' => 'done',
+            'body' => 'required|string',
         ]);
 
+        // Update the comment
+        $comment->update($data);
+
+        return response()->json([
+            'state' => 'success',
+            'message' => 'تم التعديل بنجاح',
+        ], 200);
     }
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -81,11 +95,20 @@ class CommentController extends Controller
     public function destroy(int $id)
     {
         $comment = Comment::findOrFail($id);
-        $comment->delete();
+        if (Auth::id() !== $comment->user_id) {
+            return response()->json([
+                'state' => 'error',
+                'message' => 'ليس لديك صلاحية لحذف هذا التعليق',
+            ], 403); // 403 Forbidden
+        }
+        if(Auth::id()==$comment->user_id)
+            $comment->delete();
+
         return response()->json([
             'state' => 'success',
-            'message' => 'Comment deleted successfully',
+            'message' => 'تم الحذف بنجاح ',
         ]);
 
     }
+
 }

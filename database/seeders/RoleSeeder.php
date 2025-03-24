@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
     {
 //        php artisan db:seed --class=RoleSeeder
         $roles = [
+            ['name'=>'SuperAdmin','slug'=>'super_admin'],
             ['name' => 'Admin', 'slug' => 'admin'],
             ['name' => 'Library Staff', 'slug' => 'library_staff'],
             ['name' => 'Supervisor', 'slug' => 'supervisor'],

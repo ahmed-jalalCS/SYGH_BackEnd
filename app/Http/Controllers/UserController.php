@@ -31,23 +31,31 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
     public function store(Request $request)
     {
-        $userData=$request->validate([
-            'name'=> 'required',
-            'email'=>'required|email',
-            'password'=>'required',
+        // Validate the incoming request
+        $userData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email', // Ensure email is unique
+            'password' => 'required|min:6',
         ]);
 
-        $newUser=User::create($userData);
-
+        // Hash the password before storing it
+        $userData['password'] = Hash::make($userData['password']);
+        // Create the new user
+        $newUser = User::create($userData);
+        // Generate a token for the new user
+        $token = $newUser->createToken('auth_token')->plainTextToken;
+        // Return response with token
         return response()->json([
-            'successes'=>'true',
-            'message'=>'تم انشاء الحساب بنجاح ',
-
-        ]);
-
+            'success' => true,
+            'message' => 'تم انشاء الحساب بنجاح',
+            'token' => $token, // Include the authentication token
+            'user' => $newUser, // Optional: Return user data if needed
+        ], 201);
     }
+
 
     /**
      * Display the specified resource.

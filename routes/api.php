@@ -24,6 +24,8 @@ Route::get('/test', function () {
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -35,73 +37,85 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::controller(UniversityController::class)->group(function(){
+Route:: middleware(['auth:sanctum'] )->controller(UniversityController::class)->group(function(){
 
-    Route::get('/universities','index');
-    Route::post('/university','store');
-    Route::get('/university/{id}','show');
-    Route::put('/university/{id}','update');
-    Route::delete('/university/{id}','destroy');
+    Route::get('/universities','index')->withoutMiddleware(['auth:sanctum']);// all universities
+    Route::post('/university','store');// new un
+    Route::get('/university/{id}','show')->withoutMiddleware(['auth:sanctum']);// all college of the university
+    Route::put('/university/{id}','update');// update
+    Route::delete('/university/{id}','destroy');// delete
 });
-Route::controller(CollegeController::class)->group(function(){
 
-    Route::get('/colleges','index');
-    Route::post('/college/{id}','store');
-    Route::get('/college/{id}','show');
-    Route::put('/college/{id}','update');
-    Route::delete('/college/{id}','destroy');
-});
-Route::controller(DepartmentController::class)->group(function (){
+Route::middleware(['auth:sanctum'] )->controller(CollegeController::class)->group(function(){
 
-    Route::get('/departments','index');
-    Route::post('/department/{id}','store');
-    Route::get('/department/{id}','show');
-    Route::put('/department/{id}','update');
-    Route::delete('/department/{id}','destroy');
+    Route::get('/colleges','index')->withoutMiddleware(['auth:sanctum']);// all college and its forgien key
+    Route::post('/college/{id}','store');// new college
+    Route::get('/college/{id}','show')->withoutMiddleware(['auth:sanctum']);// all department of this college
+    Route::put('/college/{id}','update');// update
+    Route::delete('/college/{id}','destroy');// delete
+}) ;
 
-});
-Route::controller(CommentController::class)->group(function (){
+Route:: middleware(['auth:sanctum'] )->controller(DepartmentController::class)->group(function (){
 
-    Route::post('project/{project:id}/comment','store');// this is for add new comment to the project
-    Route::post('comment/{id}/delete','destroy');//delete the comment
-    Route::put('comment/{id}/update','update');// update  the comment
-
+    Route::get('/departments','index')->withoutMiddleware(['auth:sanctum']);//
+    Route::post('/department/{id}','store');// new department
+    Route::get('/department/{id}','show')->withoutMiddleware(['auth:sanctum']);// show all project of department
+    Route::put('/department/{id}','update');// up
+    Route::delete('/department/{id}','destroy');//dele1
 
 });
+
+
+Route:: middleware(['auth:sanctum'] )->controller(CommentController::class)->group(function (){
+
+    Route::post('/project/{project:id}/comment','store');// this is for add new comment to the project
+    Route::delete('/comment/{id}','destroy');//delete the comment
+    Route::put('/comment/{id}','update');// update  the comment
+});
+
 
 Route::controller(UserController::class)->group(function (){
-    Route::get('/users','index');
-    Route::post('/newUser','store');
-    Route::get('user/information/{id}','show');// we should update the code
-    Route::delete('/delete/user/{id}','destroy');// we should update the code
+    Route::get('/user','index');
+    Route::post('/user','store');// create new user
+    Route::get('/user/{id}','show');// we should update the code
+    Route::delete('/user/{id}','destroy');// we should update the code
 
 });
-Route::controller(SocialmediaController::class)->group(function () {
-    Route::post('/newLinke', 'store'); // add the linkes of the student
-    Route::delete('/deleteLinke/{id}', 'destroy');// delete
+
+
+Route::middleware(['auth:sanctum'] )->controller(SocialmediaController::class)->group(function(){
+
+    Route::post('/newLinke','store');// add the linkes of the student
+    Route::delete('/deletelinke/{id}','destroy');// delete
+    Route::put('/updatelinke/{id}','update');
+
+
 });
 
-Route::controller(StudentController::class)->group(function(){
-    Route::get('/uploaddocument/{id}','UploadProject');// return the detail about its project
+
+Route::middleware(['auth:sanctum'] )->controller(StudentController::class)->group(function(){
+    Route::get('/upload','UploadProject');
 });
 
-Route::controller(DocumentController::class)->group(function(){
-    Route::get('/projectwithdocument', 'index');
-    Route::post('/document/{id}', 'store');
-    Route::get('/document/{id}', 'show');
-    Route::put('/document/{id}', 'update');
-    Route::delete('/document/{id}', 'destroy');
+
+Route::middleware(['auth:sanctum'] )->controller(DocumentController::class)->group(function(){
+    Route::get('/projectwithdocument','index')->withoutMiddleware(['auth:sanctum']);
+    Route::post('/document/{id}','store');// whene student post the file and the other input to save its project
+
+});
+Route::middleware(['auth:sanctum'] )->controller(EvaluateController::class)->group(function (){
+    Route::post('/evaluate/{id}','store');
 });
 
-Route::controller(ProjectController::class)->group(function (){
-    Route::get('/all-projects', 'index');  // Get all projects
-    Route::get('/department/{id}/projects', 'DepartmentProjects');  // Get projects by department
-    Route::get('/project/{id}/details', 'show');  // Get single project details
-    Route::post('/project', 'store');  // Create new project
-    Route::put('/project/{id}', 'update');  // Update project
-    Route::delete('/project/{id}', 'destroy');  // Delete project
-    Route::get('/college/{id}/data', 'GetDepartmentIdAndSupervisorId');  // Get department and supervisor data
+Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group(function (){
+    Route::get('/projects','index')->withoutMiddleware(['auth:sanctum']);
+    Route::post('project','store');
+    Route::put('/project/{id}','update');
+    Route::get('/project/{id}','show')->withoutMiddleware(['auth:sanctum']);
+
 });
+
+
 
 // Route::get('/projects', [LibraryStaffController::class, 'getProjects'])->middleware(['auth:sanctum', 'library_staff']);
 

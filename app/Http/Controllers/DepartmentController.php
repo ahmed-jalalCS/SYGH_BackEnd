@@ -13,18 +13,17 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        // the below code for return all the department and its college and university
         $departments = Department::select('id', 'name', 'college_id')
-        ->with([
-            'college:id,name,universitie_id', // Select specific fields for the related College model
-            'college.university:id,name', // Include the related University model with specific fields
-        ])
-        ->get();
+            ->with([
+                'college:id,name,universitie_id',
+                'college.university:id,name',
+            ])
+            ->get();
         if ($departments->isEmpty()) {
             return response()->json(['message' => 'لايوجد اقسام']);
         }
 
-       return response()->json(['success' => true, 'data' => $departments], 200);
+        return response()->json(['success' => true, 'data' => $departments], 200);
 
 
     }
@@ -42,13 +41,14 @@ class DepartmentController extends Controller
      */
     public function store(Request $request,int $collegeId)
     {
-         $validatedData = $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
         ]);
         $validatedData['college_id'] = $collegeId;
         $department = Department::create($validatedData);
-        return response()->json(['success' => true, 'data' => $department], 201);
+        return response()->json(['success' => true, 'message' => 'تمت الإضافة بنجاح'], 201);
     }
+
 
     /**
      * Display the specified resource.
@@ -57,17 +57,19 @@ class DepartmentController extends Controller
     {
 
         $departmentProject = Project::select('id','title','description')
-                                    ->where('department_id', $id)
-                                    ->where('supervisorStatus', true)
-                                    ->where('lbraryStatus', true)
-                                    ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
-                                    ->get();
-        if ($departmentProject->isEmpty()) 
+            ->where('department_id', $id)
+            ->where('supervisorStatus', true)
+            ->where('lbraryStatus', true)
+            ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
+            ->get();
+        if ($departmentProject->isEmpty())
         {
-          return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
-        }                        
-          return response()->json(['success' => true, 'data' => $departmentProject], 200);
+            return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
+        }
+        return response()->json(['success' => true, 'data' => $departmentProject], 200);
     }
+
+
 
     /**
      * Show the form for editing the specified resource.
@@ -88,8 +90,9 @@ class DepartmentController extends Controller
         $department = Department::findOrFail($id);
         $department->update($validatedData);
 
-           return response()->json(['success' => true, 'data' => $department], 200);
+        return response()->json(['success' => true, 'message' => 'تم التعديل بنجاح '], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -98,6 +101,7 @@ class DepartmentController extends Controller
     {
         $department = Department::findOrFail($id);
         $department->delete();
-        return response()->json(['success' => true, 'message' => 'Department deleted successfully'], 200);
+        return response()->json(['success' => true, 'message' => 'تم الحذف بنجاح '], 200);
     }
+
 }

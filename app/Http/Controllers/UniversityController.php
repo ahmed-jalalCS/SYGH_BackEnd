@@ -21,9 +21,15 @@ class UniversityController extends Controller
             $query->select('id', 'name', 'universitie_id'); // Ensure 'university_id' is included for relationship
         }])->get();
         // we return the name of college for the design
+
+        if ($universities->isEmpty()) {
+            return response()->json(['message' => 'لايوجد جامعات  ']);
+        }
         return response()->json($universities);
 
     }
+
+
 
 
 
@@ -92,10 +98,16 @@ class UniversityController extends Controller
      */
     public function show(int $id)
     {
-        $universityCollege=College::where('universitie_id',$id)->get();
-        return response()->json($universityCollege);
+        $universityCollege = College::where('universitie_id', $id)->get();
 
+        if ($universityCollege->isEmpty()) {
+            return response()->json(['message' => 'لايوجد كليات لهذي الجامعة'], 404);
+        }
+
+        return response()->json(['successes'=>true,'data'=>$universityCollege]);
     }
+
+
 
     /**
      * Show the form for editing the specified resource.
