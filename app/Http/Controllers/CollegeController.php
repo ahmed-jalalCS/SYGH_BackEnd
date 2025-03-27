@@ -48,7 +48,7 @@ class CollegeController extends Controller
                 ->limit(1);
         })->get();
 
-        if ($colleges->isEmpty()) {return response()->json(['success' => true, 'message' => 'Colleges not found']);}
+        if ($colleges->isEmpty()) {return response()->json(['success' => true, 'message' => 'لايوجد كليات']);}
 
         return response()->json(['success' => true, 'data' => $colleges]);
 
@@ -125,6 +125,30 @@ class CollegeController extends Controller
         }
     }
 
+    public function deleteCollege($id)
+    {
+        try {
+            $college=College::find($id);
+            if (!$college) {
+                return response()->json(['success' => false, 'message'=>'لايوجد كلية'
+                ]);
+            }
+            if(Auth::user()->id!==$college->university->user_id){
+                return response()->json(['error' => 'غير مصرح لفعل هذه العملية'], 403);
+            }
+            if ($college->departments()->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لايمكن حذف هذه الكيلة'
+                ], 400);
+            }
+            $college->delete();
+            return response()->json(['success'=>true,'message'=>'تم الحذف بنجاح']);
+        }catch (\Exception $e){
+            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء التعديل ', 'error'=>$e->getMessage()], 401);
+        }
+
+    }
 
 
 
@@ -138,5 +162,6 @@ class CollegeController extends Controller
 
         return response()->json(['success' => true, 'message' => ' تم حذف الكلية بنجاح '], 200);
     }
+
 
 }

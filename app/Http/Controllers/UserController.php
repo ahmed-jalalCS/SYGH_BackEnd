@@ -111,7 +111,7 @@ class UserController extends Controller
         try {
 
             $university=University::findOrFail($id);
-            if ($university->user_id !==0)
+            if ($university->user_id !=null)
                 {
                     return response()->json([
                         'success'=>true,
@@ -128,7 +128,7 @@ class UserController extends Controller
             }
 
             $ValidateData=$validator->validated();
-            $ValidateData['role_id'] = 1;
+            $ValidateData['role_id'] = 2;
             $ValidateData['password'] = Hash::make($ValidateData['password']);
             $user = User::create($ValidateData);
             $university->user_id = $user->id;

@@ -57,7 +57,7 @@ class UniversityController extends Controller
 
             $validatedData = $request->only(['name', 'address']);
             $validatedData['image'] = $imagePath;
-
+            $validatedData['user_id']=1;
             $university = University::create($validatedData);
 
             return response()->json([

@@ -165,7 +165,10 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
        Route::get('/colleges/{id}', 'show');
        Route::post('/colleges/{id}', 'store');
        Route::put('/colleges/{id}', 'update');
-       Route::delete('/colleges/{id}', 'destroy');
+       Route::delete('/colleges/{id}', 'deleteCollege');
+    });
+    Route::controller(LibraryStaffController::class)->group(function (){
+       Route::post('/colleges/{id}/addlibraraystaff','store');
     });
 
 });

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\College;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Imports\ProjectImportLibraryStaff;
 use App\Models\Department;
 use App\Models\LibrarayStaff;
+use Illuminate\Support\Facades\Validator;
+use League\Csv\Exception;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use App\Models\LibraryStaff;
@@ -16,6 +19,7 @@ use App\Models\Supervisor;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use function PHPUnit\Framework\isEmpty;
 
 
 class LibraryStaffController extends Controller
@@ -152,9 +156,49 @@ class LibraryStaffController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request,int $id)
     {
-        //
+        try {
+            $college=College::find($id);
+            if (!$college) {return response()->json(['success' => false, 'message'=>'لايوجد كلية']);}
+
+            if(Auth::user()->id!==$college->university->user_id){return response()->json(['error' => 'غير مصرح لفعل هذه العملية'], 403);}
+            $libraryStaff=LibrarayStaff::where('college_id',$college->id)->get('id');
+              if (!isEmpty($libraryStaff)){
+                  return response()->json([
+                      'success'=>true,
+                      'message'=>'يوجد بالفعل مسوؤل مكتبة'
+                  ],200);
+              }
+            $validator= Validator::make($request->all(),[
+                'name'=> 'required',
+                'email'=>'required|email',
+                'password'=>'required',
+            ]);
+            if($validator->fails()){
+                return response()->json(['success'=>false,'errors'=>$validator->errors()]);
+            }
+
+            $ValidateData=$validator->validated();
+            $ValidateData['role_id'] = Role::where('name','Library Staff')->get('id');
+            $ValidateData['password'] = Hash::make($ValidateData['password']);
+            return response()->json([
+               's'=>true,
+               'data'=>$ValidateData
+            ]);
+
+            $user = User::create($ValidateData);
+
+//            $addlibraraystaff=LibrarayStaff::created([
+//                ''
+//            ])
+
+
+
+        }catch (\Exception $e){
+
+            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء التعديل ', 'error'=>$e->getMessage()], 500);
+        }
     }
 
     /**
