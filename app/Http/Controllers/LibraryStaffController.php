@@ -71,7 +71,6 @@ class LibraryStaffController extends Controller
                     'total' => Student::whereHas('department', function ($query) use ($collegeId) {
                         $query->where('college_id', $collegeId);
                     })->count(),
-
                     'by_department' => Department::where('college_id', $collegeId)
                         ->withCount('students')
                         ->having('students_count', '>', 0)
@@ -153,9 +152,7 @@ class LibraryStaffController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+// The admin functionality
     public function store(Request $request,int $id)
     {
         try {
@@ -163,13 +160,15 @@ class LibraryStaffController extends Controller
             if (!$college) {return response()->json(['success' => false, 'message'=>'لايوجد كلية']);}
 
             if(Auth::user()->id!==$college->university->user_id){return response()->json(['error' => 'غير مصرح لفعل هذه العملية'], 403);}
-            $libraryStaff=LibrarayStaff::where('college_id',$college->id)->get('id');
-              if (!isEmpty($libraryStaff)){
-                  return response()->json([
-                      'success'=>true,
-                      'message'=>'يوجد بالفعل مسوؤل مكتبة'
-                  ],200);
-              }
+            $libraryStaff = LibrarayStaff::where('college_id', $college->id)
+                                         ->value('id');
+            if ($libraryStaff) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'يوجد بالفعل مسؤول مكتبة'
+                ], 200);
+            }
+
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
                 'email'=>'required|email',
@@ -180,55 +179,59 @@ class LibraryStaffController extends Controller
             }
 
             $ValidateData=$validator->validated();
-            $ValidateData['role_id'] = Role::where('name','Library Staff')->get('id');
+
+            $ValidateData['role_id'] = Role::where('name','Library Staff')->value('id');
             $ValidateData['password'] = Hash::make($ValidateData['password']);
-            return response()->json([
-               's'=>true,
-               'data'=>$ValidateData
-            ]);
-
             $user = User::create($ValidateData);
-
-//            $addlibraraystaff=LibrarayStaff::created([
-//                ''
-//            ])
-
-
-
+            $addlibraraystaff=LibrarayStaff::create([
+                'user_id'=>$user->id,
+                'college_id'=>$college->id,
+                'isSuperAdmin'=>1
+            ]);
+            return response()->json([
+             'success'=>true,
+             'message' =>'تم انشاء مسوؤل مكتبة',
+                'data'=>$addlibraraystaff
+            ],200);
         }catch (\Exception $e){
 
-            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء التعديل ', 'error'=>$e->getMessage()], 500);
+            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء الاضافة ', 'error'=>$e->getMessage()], 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    public function destroy(int $id)
+    {
+        try {
+            $libraryStaff = LibrarayStaff::find($id);
+            if (!$libraryStaff) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يوجد مسؤول مكتبة'
+                ]);
+            }
+            $user = $libraryStaff->user_id;
+            $libraryStaff->delete();
+            User::where('id', $user)->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حذف مسؤول المكتبة بنجاح'
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء الحذف ', 'error'=>$e->getMessage()], 500);
+        }
+    }
+    // The end admin functionality
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
     {
         //
     }

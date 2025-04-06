@@ -11,6 +11,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SocialmediaController;
+use App\Http\Controllers\SupervisorController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\LibraryStaffController;
@@ -169,8 +170,24 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
     });
     Route::controller(LibraryStaffController::class)->group(function (){
        Route::post('/colleges/{id}/addlibraraystaff','store');
+       Route::delete('/colleges/{id}/deletelibraraystaff','destroy');
     });
+});
+Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum','libraraystaff'])->group(function (){
 
+
+    Route::controller(DepartmentController::class)->group(function (){
+
+    });
+    Route::controller(SupervisorController::class)->group(function (){
+
+    });
+    Route::controller(StudentController::class)->group(function (){
+
+    });
+    Route::controller(ProjectController::class)->group(function (){
+
+    });
 });
 // Route::middleware(['auth:sanctum', 'super_admin'])->group(function () {
 //   // Users
