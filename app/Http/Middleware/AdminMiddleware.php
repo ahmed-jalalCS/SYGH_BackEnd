@@ -21,6 +21,7 @@ class AdminMiddleware
                 'message' => 'لست مصرح للوصول'
             ],403);
         }
+
         // Check if the user is authenticated and is an admin
 
 //        if (!Auth::check() || !Auth::user()->role) {

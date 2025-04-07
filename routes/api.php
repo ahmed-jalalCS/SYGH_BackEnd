@@ -39,31 +39,18 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route:: middleware(['auth:sanctum'] )->controller(UniversityController::class)->group(function(){
-
     Route::get('/universities','index')->withoutMiddleware(['auth:sanctum']);// all universities
-    Route::post('/university','store');// new un
     Route::get('/university/{id}','show')->withoutMiddleware(['auth:sanctum']);// all college of the university
-    Route::put('/university/{id}','update');// update
-    Route::delete('/university/{id}','destroy');// delete
 });
 
 Route::middleware(['auth:sanctum'] )->controller(CollegeController::class)->group(function(){
-
     Route::get('/colleges','index')->withoutMiddleware(['auth:sanctum']);// all college and its forgien key
-    Route::post('/college/{id}','store');// new college
     Route::get('/college/{id}','show')->withoutMiddleware(['auth:sanctum']);// all department of this college
-    Route::put('/college/{id}','update');// update
-    Route::delete('/college/{id}','destroy');// delete
-}) ;
+});
 
 Route:: middleware(['auth:sanctum'] )->controller(DepartmentController::class)->group(function (){
-
     Route::get('/departments','index')->withoutMiddleware(['auth:sanctum']);//
-    Route::post('/department/{id}','store');// new department
     Route::get('/department/{id}','show')->withoutMiddleware(['auth:sanctum']);// show all project of department
-    Route::put('/department/{id}','update');// up
-    Route::delete('/department/{id}','destroy');//dele1
-
 });
 
 
@@ -116,32 +103,6 @@ Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group
 
 });
 
-
-
-// Route::get('/projects', [LibraryStaffController::class, 'getProjects'])->middleware(['auth:sanctum', 'library_staff']);
-
-// Route::get('/users', [SuperAdminController::class, 'getAllUsers'])->middleware(['auth:sanctum', 'super_admin']);
-
-// Route::get('/students', [SuperAdminController::class, 'getAllStudents'])->middleware(['auth:sanctum', 'super_admin']);
-
-// Route::post('/university', [SuperAdminController::class, 'addUniversity'])->middleware(['auth:sanctum', 'super_admin']);
-
-
-// // Library staff dashboard: (test):
-// Route::middleware(['auth:sanctum', 'library_staff'])->group(function () {
-//   Route::get('/projects', [LibraryStaffController::class, 'getProjects']);
-
-// });
-
-// Route::middleware('library_staff')->get('/test-admin', function () {
-//   return response()->json(['message' => 'Admin access granted']);
-// });
-
-// Route::middleware(['auth:sanctum', 'library_staff'])->group(function () {
-//   Route::get('/projects', [LibraryStaffController::class, 'getProjects']);
-// });
-
-
 Route::prefix('/superadmin')->controller(SuperAdminController::class)->middleware(['auth:sanctum', 'super_admin'])->group(function () {
 
     Route::controller(UniversityController::class)->group(function () {
@@ -177,10 +138,17 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
 
 
     Route::controller(DepartmentController::class)->group(function (){
+        Route::get('/departments', 'getAllDepartments');
+        Route::post('/departments/{id}', 'store');
+        Route::put('/departments/{id}', 'update');
+        Route::delete('/departments/{id}', 'destroy');
 
     });
-    Route::controller(SupervisorController::class)->group(function (){
-
+        Route::controller(SupervisorController::class)->group(function (){
+        Route::get('/supervisors', 'getAllSupervisors');
+        Route::post('/supervisors', 'store');
+        Route::put('/supervisors/{id}', 'update');
+        Route::delete('/supervisors/{id}', 'destroy');
     });
     Route::controller(StudentController::class)->group(function (){
 
@@ -271,9 +239,7 @@ Route::middleware(['auth:sanctum', 'super_admin'])->group(function () {
         Route::post('/', [SuperAdminController::class, 'createUniversity']);
         Route::get('/{id}', [SuperAdminController::class, 'viewUniversity']);
         Route::put('/{id}', [SuperAdminController::class, 'updateUniversity']);
-        Route::delete('/{id}', [SuperAdminController::class,
-            'deleteUniversity'
-        ]);
+        Route::delete('/{id}', [SuperAdminController::class, 'deleteUniversity']);
     });
 
     // Colleges Management

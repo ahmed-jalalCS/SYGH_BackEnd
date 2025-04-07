@@ -12,9 +12,7 @@ use function PHPUnit\Framework\isEmpty;
 
 class CollegeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $colleges = College::select('id', 'name', 'universitie_id')->get();
@@ -35,9 +33,6 @@ class CollegeController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
 
     public function getAllColleges(Request $request)
     {
@@ -152,9 +147,7 @@ class CollegeController extends Controller
 
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(int $id)
     {
         $college = College::findOrFail($id);

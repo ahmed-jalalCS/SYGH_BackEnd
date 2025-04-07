@@ -11,14 +11,14 @@ class SuperAdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::user();
-        
+
         // Check if user exists and has a role relationship loaded
         if (!$user || !$user->role) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         // Check if the role slug is 'admin'
-        if ($user->role->slug !== 'admin') {
+        if ($user->role->slug !== 'super_admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 

@@ -16,9 +16,24 @@ class LibraryStaffMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::check() || !Auth::user()->hasRole('library_staff')){
-            return response(['error' => 'Unauthorized'], 403);
+
+        $user = Auth::user();
+
+        // Check if user exists and has a role relationship loaded
+        if (!$user || !$user->role) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        // Check if the role slug is 'admin'
+        if ($user->role->slug !== 'library_staff') {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         return $next($request);
+//
+//        if(!Auth::check() || !Auth::user()->hasRole('library_staff')){
+//            return response(['error' => 'Unauthorized'], 403);
+//        }
+//        return $next($request);
     }
 }

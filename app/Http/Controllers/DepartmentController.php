@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\College;
 use App\Models\Department;
+use App\Models\LibrarayStaff;
 use App\Models\Project;
+use App\Models\University;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use App\Models\LibraryStaff;
 
 class DepartmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         $departments = Department::select('id', 'name', 'college_id')
@@ -27,32 +31,6 @@ class DepartmentController extends Controller
 
 
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request,int $collegeId)
-    {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-        $validatedData['college_id'] = $collegeId;
-        $department = Department::create($validatedData);
-        return response()->json(['success' => true, 'message' => 'تمت الإضافة بنجاح'], 201);
-    }
-
-
-    /**
-     * Display the specified resource.
-     */
     public function show(int $id)
     {
 
@@ -69,39 +47,182 @@ class DepartmentController extends Controller
         return response()->json(['success' => true, 'data' => $departmentProject], 200);
     }
 
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function create()
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
+// the library staff functionality
+
+    public function getAllDepartments(Request $request)
+    {
+        try {
+            $department= LibrarayStaff::with([
+                'college:id',
+                'college.departments:id,name,college_id'
+            ])
+                ->where('user_id', Auth::id())
+                ->get(['user_id', 'college_id']);
+
+            return response()->json(['success' => true, 'data' => $department], 200);
+
+        }   catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
+    }
+    public function store(Request $request, int $collegeId)
+    {
+        try {
+            $collegedata = College::with('libraryStaffs')->find($collegeId);
+            if (!$collegedata) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لايوجد كلية ',
+                ]);
+            }
+
+            $libraraystaff = LibrarayStaff::where('college_id', $collegedata->id)
+                ->where('user_id', Auth::id())
+                ->get();
+
+            if ($libraraystaff->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك ',
+                ]);
+            }
+            $validator= Validator::make($request->all(),[
+                'name'=> 'required',
+            ]);
+            if ($validator->fails()) {
+                return response()->json(['success' => false, 'errors' => $validator->errors()]);
+            }
+            $validatedData = $validator->validated();
+            $validatedData['college_id'] = $collegedata->id;
+            $department = Department::create($validatedData);
+            return response()->json([
+                'success' => true,
+                'message' => 'تمت الاضافة بنجاح ',
+                '$collegeId' => $department,
+            ], 200);
+        } catch (\Exception $exception) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+
+        }
+    }
+
+
+
+
+
+
+    public function edit(string $id)
+    {
+        //
+    }
     public function update(Request $request, int $id)
     {
-        $validatedData = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-        ]);
-        $department = Department::findOrFail($id);
-        $department->update($validatedData);
+        try {
+            $department = Department::find($id);
+            if (!$department) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'القسم غير موجود',
+                ]);
+            }
+            $collegedata = College::with('libraryStaffs')->find($department->college_id);
+            $libraryStaff = LibrarayStaff::where('college_id', $collegedata->id)
+                ->where('user_id', Auth::id())
+                ->get();
+            if ($libraryStaff->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك',
+                ]);
+            }
+            $validator = Validator::make($request->all(), [
+                'name' => 'required',
+            ]);
 
-        return response()->json(['success' => true, 'message' => 'تم التعديل بنجاح '], 200);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ]);
+            }
+            $validatedData = $validator->validated();
+            $department->update($validatedData);
+            return response()->json([
+                'success' => true,
+                'message' => 'تم التحديث بنجاح',
+                'department' => $department,
+            ], 200);
+
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
     }
 
 
     /**
      * Remove the specified resource from storage.
      */
+
     public function destroy(int $id)
     {
-        $department = Department::findOrFail($id);
-        $department->delete();
-        return response()->json(['success' => true, 'message' => 'تم الحذف بنجاح '], 200);
+        try {
+            $department = Department::find($id);
+            if (!$department) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'القسم غير موجود',
+                ]);
+            }
+            $collegedata = College::find($department->college_id);
+            $libraryStaff = LibrarayStaff::where('college_id', $collegedata->id)
+                ->where('user_id', Auth::id())
+                ->get();
+
+            if ($libraryStaff->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك',
+                ]);
+            }
+            if ($department->projects()->count() > 0 || $department->students()->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لايمكن حذف هذه القسم '
+                ], 400);
+            }
+            $department->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم الحذف بنجاح',
+            ], 200);
+
+        } catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء الحذف ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
     }
 
 }

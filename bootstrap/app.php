@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\LibraryStaffMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'super_admin'=>SuperAdminMiddleware::class,
-            'admin'=>AdminMiddleware::class
+            'admin'=>AdminMiddleware::class,
+            'libraraystaff'=>LibraryStaffMiddleware::class,
         ]);
 
     })

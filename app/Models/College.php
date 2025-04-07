@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\LibrarayStaff;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use PharIo\Manifest\Library;
 
 class College extends Model
 {
@@ -28,6 +29,7 @@ class College extends Model
        {
          return $this->hasMany(LibrarayStaff::class, 'college_id');
        }
+
        public function supervisors()
         {
             return $this->hasMany(Supervisor::class, 'college_id');
