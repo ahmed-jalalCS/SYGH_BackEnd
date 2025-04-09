@@ -86,15 +86,11 @@ class UniversityController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+ public function show(int $id)
     {
-        $universityCollege = College::where('universitie_id', $id)->get();
-
-        if ($universityCollege->isEmpty()) {
-            return response()->json(['message' => 'لايوجد كليات لهذي الجامعة'], 404);
-        }
-
-        return response()->json(['successes'=>true,'data'=>$universityCollege]);
+        $universityCollege=College::where('universitie_id',$id)->get();
+        return response()->json($universityCollege);
+          
     }
 
 

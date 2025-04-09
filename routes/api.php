@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EvaluateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -62,11 +63,12 @@ Route:: middleware(['auth:sanctum'] )->controller(CommentController::class)->gro
 });
 
 
+
 Route::controller(UserController::class)->group(function (){
-    Route::get('/user','index');
-    Route::post('/user','store');// create new user
-    Route::get('/user/{id}','show');// we should update the code
-    Route::delete('/user/{id}','destroy');// we should update the code
+    Route::get('/users','index')->middleware("auth:sanctum");
+    Route::post('/user','store');// create new user 
+    Route::get('/user/{id}','show');// we should update the code 
+    Route::delete('/user/{id}','destroy');// we should update the code 
 
 });
 
@@ -92,9 +94,12 @@ Route::middleware(['auth:sanctum'] )->controller(DocumentController::class)->gro
 
 });
 Route::middleware(['auth:sanctum'] )->controller(EvaluateController::class)->group(function (){
-    Route::post('/evaluate/{id}','store');
-});
+        
+     Route::post('/evaluate/{id}','store');
+     Route::get('evaluate/{id}','show');
 
+
+});
 Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group(function (){
     Route::get('/projects','index')->withoutMiddleware(['auth:sanctum']);
     Route::post('project','store');

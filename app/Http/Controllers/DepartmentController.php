@@ -33,18 +33,21 @@ class DepartmentController extends Controller
     }
     public function show(int $id)
     {
+        $department = Department::find($id);
 
         $departmentProject = Project::select('id','title','description')
             ->where('department_id', $id)
             ->where('supervisorStatus', true)
             ->where('lbraryStatus', true)
-            ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
+            // ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
             ->get();
         if ($departmentProject->isEmpty())
         {
             return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
         }
-        return response()->json(['success' => true, 'data' => $departmentProject], 200);
+        return response()->json(['success' => true, 
+        "department_name"=>$department->name,
+        'data' => $departmentProject], 200);
     }
 
     public function create()

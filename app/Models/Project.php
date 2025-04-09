@@ -48,20 +48,25 @@ class Project extends Model
 
         public function getProjectDetails()
         {
-            // Load only the necessary columns for the relationships
+            // Load necessary relationships
             $this->load([
-                'document:id,project_id,pathDo',
-                'supervisor.user:id,name',
-                'students.user:id,name,email',
-                'students.socialmedie:id,student_id,linkes',
-                'comments.user:id,name',
+                'document:id,project_id,pathDo', 
+                'supervisor.user:id,name', 
+                'students.user:id,name,email', 
+                'students.socialmedie:id,student_id,linkes', 
+                'comments.user:id,name',  
+                'evaluates' // Load ratings
             ]);
-
+        
+            // Calculate the average rating
+            $averageRating = $this->evaluates->avg('rating') ?? 0; // Default to 0 if no ratings
+        
             return [
                 'title' => $this->title,
                 'description' => $this->description,
                 'videoUrl' => $this->videoUrl,
                 'projectYear' => $this->projectYear,
+                'average_rating' => round($averageRating, 2), // Round to 2 decimal places
                 'document_path' => $this->document->pathDo ?? null, // Path of the document
                 'supervisorName' => $this->supervisor->user->name ?? null, // Supervisor's name
                 'students' => $this->students->map(function ($student) {
@@ -73,12 +78,14 @@ class Project extends Model
                 }),
                 'comments' => $this->comments->map(function ($comment) {
                     return [
+                        'id'=>$comment->id,
                         'body' => $comment->body,
                         'user_name' => $comment->user->name ?? null, // Name of the commenter
                     ];
                 }),
             ];
         }
-
+        
+        
 
 }

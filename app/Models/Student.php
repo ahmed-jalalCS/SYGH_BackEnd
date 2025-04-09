@@ -32,7 +32,7 @@ class Student extends Model
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
-    public function socialmedies()
+    public function socialmedie()
     {
         return $this->hasMany(Socialmedie::class, 'student_id');
     }
