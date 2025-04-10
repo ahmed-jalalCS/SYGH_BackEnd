@@ -81,10 +81,6 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         try {
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
             $libraraystaff = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
