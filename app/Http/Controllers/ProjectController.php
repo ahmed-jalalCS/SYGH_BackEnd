@@ -1,12 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use App\Models\Project;
 use App\Models\Department;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 class ProjectController extends Controller
 {
     /**
@@ -71,25 +71,53 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $validatedData=$request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'videoUrl' => 'nullable|url',
-            'projectYear' => 'required',
-            'department_id' => 'required',
-            'supervisor_id'=>'required',
-        ]);
 
 
-        $datainsert=Project::create($validatedData);
+
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'title' => 'required|string', // for lookup only
+        'description' => 'required|string',
+        'videoUrl' => 'nullable|url',
+        'document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+    ]);
+
+    // Search for the project by its title
+    $project = Project::where('title', $request->title)->first();
+
+    if (!$project) {
         return response()->json([
-            'success'=>true,
-            'message'=>'تمت الاضافة بنجاح ',
-        ]);
+            'success' => false,
+            'message' => 'Project not found with the given title.',
+        ], 404);
+    }
 
-        }
+    // Update fields
+    $project->description = $request->input('description');
+    $project->videoUrl = $request->input('videoUrl');
+
+    // Upload new document if provided
+   if ($request->hasFile('document')) {
+    $file = $request->file('document');
+    $originalName = $file->getClientOriginalName(); // ✅ THIS is what you're missing
+    $path = $file->store('projects/documents', 'public');
+
+    $project->document = Storage::url($path);
+    // $project->document = $originalName; // ✅ You must assign this
+}
+
+    $project->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Project updated successfully.',
+        'project' => $project
+    ]);
+}
+
 
     /**
      * Display the specified resource.
