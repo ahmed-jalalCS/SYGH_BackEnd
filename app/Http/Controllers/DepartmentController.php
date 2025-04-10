@@ -77,6 +77,9 @@ class DepartmentController extends Controller
                 'error' => $exception->getMessage()
             ],500);
         }
+
+
+        
     }
     public function store(Request $request)
     {
