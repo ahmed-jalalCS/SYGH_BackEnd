@@ -129,7 +129,7 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
 
     Route::controller(CollegeController::class)->group(function () {
        Route::get('/colleges', 'getAllColleges');
-       Route::get('/colleges/{id}', 'show');
+       //Route::get('/colleges/{id}', 'show');
        Route::post('/colleges/{id}', 'store');
        Route::put('/colleges/{id}', 'update');
        Route::delete('/colleges/{id}', 'deleteCollege');
@@ -157,8 +157,13 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
     });
     Route::controller(StudentController::class)->group(function (){
 
+        Route::get('/students', 'getAllStudents');
+        Route::post('/students', 'store');
+        Route::put('/students/{id}', 'update');
+
     });
     Route::controller(ProjectController::class)->group(function (){
+        Route::get('/projects', 'getAllProjects');
 
     });
 });
