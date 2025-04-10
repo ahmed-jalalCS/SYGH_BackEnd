@@ -22,15 +22,27 @@ class CollegeController extends Controller
         return response()->json(['success' => true, 'data' => $colleges], 200);
 
     }
-    public function show(int $id)
-    {
-        $collegeDepartment = Department::where('college_id',$id)->get();
+public function show(int $id)
+{
+    $college = College::find($id);
 
-        if ($collegeDepartment->isEmpty()) {
-            return response()->json(['message' => 'لايوجد اقسام لهذي الكلية'], 404);
-        }
-        return response()->json(['success' => true, 'data' => $collegeDepartment ], 200);
+    if (!$college) {
+        return response()->json([
+            'success' => false,
+            'message' => 'الكلية غير موجودة'
+        ], 404);
     }
+
+    $departments = Department::where('college_id', $id)->get();
+
+    return response()->json([
+        'success' => true,
+        'college_name' => $college->name, // ✅ Add this
+        'data' => $departments
+    ], 200);
+}
+
+
 
 
 

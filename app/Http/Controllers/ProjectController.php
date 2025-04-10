@@ -94,26 +94,26 @@ class ProjectController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int  $id)
+     public function show(int  $id)
     {
 
         //supervisorStatus
         $project = Project::where('id', $id)
-            ->where('supervisorStatus', true)
-            ->where('lbraryStatus', true)
-            ->first();
-        if (!$project)
-        {
-            return response()->json(['message' => 'Project not found'], 404);
-        }
-        $projectDetails = $project->getProjectDetails();
-        return response()->json($projectDetails);
-
+                            ->where('supervisorStatus', true)
+                            ->where('lbraryStatus', true)
+                            ->first();
+           if (!$project) 
+           {
+               return response()->json(['message' => 'Project not found'], 404);
+           }
+           $projectDetails = $project->getProjectDetails();
+           return response()->json($projectDetails);
+        
 
         //  project 'title','description','videoUrl',and the doucment pathDo of the this project from the document table
-        // also the  suopervisor name  of the project and the students name , emial and linkes   that belong to this project
-        // also the comment of this project with the name of the user that post this comment
-
+        // also the  suopervisor name  of the project and the students name , emial and linkes   that belong to this project 
+        // also the comment of this project with the name of the user that post this comment 
+        
 
     }
 

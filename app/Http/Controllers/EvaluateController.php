@@ -33,7 +33,7 @@ class EvaluateController extends Controller
             'rating' => 'required|numeric|min:1|max:5', // Ensure rating is between 1 and 5
         ]);
     
-        $data['user_id']=1;
+        $data['user_id']=Auth::id();
         $data['project_id']=$project_id;
         $evaluate = Evaluate::create($data);
         return response()->json([
@@ -42,9 +42,23 @@ class EvaluateController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(Request $request,string $id)
     {
-        //
+        $rating = Evaluate::where("project_id", $id)->where("user_id", Auth::id())->get("rating");
+        
+        if (count(value: $rating) == 0) {
+            return response()->json([
+               'message' => 'لم يتم تقييم المشروع حتى ',
+            ], 404);
+            
+        } else {
+            return response()->json([
+               'message' => 'تم تقييم المشروع بنجا�� ',
+                'rating' => $rating[0]->rating,
+            ], 200);
+        }
+        
+
     }
 
     /**

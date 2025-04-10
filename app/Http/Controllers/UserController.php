@@ -6,18 +6,26 @@ use App\Models\University;
 use App\Models\User;
 use Illuminate\Http\Request;
 //use Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use mysql_xdevapi\Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+  public function index()
     {
-        //
+        
+        $user = User::where("id",Auth::id())->first();
+       
+ return response()->json($user, 200);
+        
+       
+
     }
 
     /**
