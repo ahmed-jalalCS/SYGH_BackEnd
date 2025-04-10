@@ -12,7 +12,6 @@ class SuperAdminMiddleware
     {
         $user = Auth::user();
 
-        // Check if user exists and has a role relationship loaded
         if (!$user || !$user->role) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }

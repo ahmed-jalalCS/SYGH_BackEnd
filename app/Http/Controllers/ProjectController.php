@@ -1,12 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\User;
+
+
+use App\Models\LibrarayStaff;
+
 use App\Models\Project;
 use App\Models\Department;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Storage;
+
+use Illuminate\Support\Facades\Auth;
+
+
 class ProjectController extends Controller
 {
     /**
@@ -68,6 +78,24 @@ class ProjectController extends Controller
     ], 200);
 
     }
+
+    public function getAllProjects(Request $request)
+    {
+        try {
+
+            $libraraystaff=LibrarayStaff::with(['college:id','college.departments:id,name,college_id'])->where('user_id',Auth::id())->first();
+
+            $projects = Project::where('department_id',$libraraystaff->college->departments->first()->id)->get();
+            return response()->json(['success' => true, 'data' => $projects], 200);
+
+        }   catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -117,6 +145,7 @@ public function store(Request $request)
         'project' => $project
     ]);
 }
+    
 
 
     /**

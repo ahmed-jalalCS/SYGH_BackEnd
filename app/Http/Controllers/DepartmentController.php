@@ -63,7 +63,7 @@ class DepartmentController extends Controller
         try {
             $department= LibrarayStaff::with([
                 'college:id',
-                'college.departments:id,name,college_id'
+                'college.department:id,name,college_id'
             ])
                 ->where('user_id', Auth::id())
                 ->get(['user_id', 'college_id']);
@@ -78,27 +78,13 @@ class DepartmentController extends Controller
             ],500);
         }
     }
-    public function store(Request $request, int $collegeId)
+    public function store(Request $request)
     {
         try {
-            $collegedata = College::with('libraryStaffs')->find($collegeId);
-            if (!$collegedata) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'لايوجد كلية ',
-                ]);
-            }
 
-            $libraraystaff = LibrarayStaff::where('college_id', $collegedata->id)
-                ->where('user_id', Auth::id())
-                ->get();
 
-            if ($libraraystaff->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'غير مصرح لك ',
-                ]);
-            }
+
+            $libraraystaff = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
             ]);
@@ -106,12 +92,12 @@ class DepartmentController extends Controller
                 return response()->json(['success' => false, 'errors' => $validator->errors()]);
             }
             $validatedData = $validator->validated();
-            $validatedData['college_id'] = $collegedata->id;
+            $validatedData['college_id'] = $libraraystaff;
             $department = Department::create($validatedData);
             return response()->json([
                 'success' => true,
                 'message' => 'تمت الاضافة بنجاح ',
-                '$collegeId' => $department,
+                '$collegeId' => $department,    
             ], 200);
         } catch (\Exception $exception) {
 
