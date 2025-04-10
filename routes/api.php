@@ -139,7 +139,7 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
 
     Route::controller(DepartmentController::class)->group(function (){
         Route::get('/departments', 'getAllDepartments');
-        Route::post('/departments/{id}', 'store');
+        Route::post('/departments', 'store');
         Route::put('/departments/{id}', 'update');
         Route::delete('/departments/{id}', 'destroy');
 

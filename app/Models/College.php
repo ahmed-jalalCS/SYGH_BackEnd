@@ -21,7 +21,7 @@ class College extends Model
       {
         return $this->belongsTo(University::class, 'universitie_id');
       }
-      public function departments()
+      public function department()
       {
         return $this->hasMany(Department::class, 'college_id');
       }
