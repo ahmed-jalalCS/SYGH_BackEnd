@@ -45,7 +45,7 @@ class DepartmentController extends Controller
         {
             return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
         }
-        return response()->json(['success' => true, 
+        return response()->json(['success' => true,
         "department_name"=>$department->name,
         'data' => $departmentProject], 200);
     }
@@ -84,6 +84,10 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         try {
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             $libraraystaff = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
@@ -97,7 +101,7 @@ class DepartmentController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'تمت الاضافة بنجاح ',
-                '$collegeId' => $department,    
+                '$collegeId' => $department,
             ], 200);
         } catch (\Exception $exception) {
 

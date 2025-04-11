@@ -66,9 +66,9 @@ Route:: middleware(['auth:sanctum'] )->controller(CommentController::class)->gro
 
 Route::controller(UserController::class)->group(function (){
     Route::get('/users','index')->middleware("auth:sanctum");
-    Route::post('/user','store');// create new user 
-    Route::get('/user/{id}','show');// we should update the code 
-    Route::delete('/user/{id}','destroy');// we should update the code 
+    Route::post('/user','store');// create new user
+    Route::get('/user/{id}','show');// we should update the code
+    Route::delete('/user/{id}','destroy');// we should update the code
 
 });
 
@@ -94,7 +94,7 @@ Route::middleware(['auth:sanctum'] )->controller(DocumentController::class)->gro
 
 });
 Route::middleware(['auth:sanctum'] )->controller(EvaluateController::class)->group(function (){
-        
+
      Route::post('/evaluate/{id}','store');
      Route::get('evaluate/{id}','show');
 
@@ -102,8 +102,7 @@ Route::middleware(['auth:sanctum'] )->controller(EvaluateController::class)->gro
 });
 Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group(function (){
     Route::get('/projects','index')->withoutMiddleware(['auth:sanctum']);
-    Route::post('project','store');
-    Route::put('/project/{id}','update');
+    Route::post('/projects','uploadeproject');
     Route::get('/project/{id}','show')->withoutMiddleware(['auth:sanctum']);
 
 });
@@ -157,13 +156,20 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
     });
     Route::controller(StudentController::class)->group(function (){
 
-        Route::get('/students', 'getAllStudents');
+        Route::get('/students', 'index');
         Route::post('/students', 'store');
         Route::put('/students/{id}', 'update');
+        Route::delete('/students/{id}', 'destroy');
+
 
     });
     Route::controller(ProjectController::class)->group(function (){
         Route::get('/projects', 'getAllProjects');
+        Route::post('/projects', 'store');
+
+        Route::put('/projects/{id}', 'update');
+        Route::delete('/projects/{id}', 'destroy');
+
 
     });
 });

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Project extends Model
 {
@@ -46,21 +47,48 @@ class Project extends Model
             return $this->hasOne(Document::class,'project_id', 'id');
         }
 
+    public function departmentId(): int
+    {
+
+        $libraraystaff = LibrarayStaff::with(['college:id', 'college.department:id,name,college_id'])
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$libraraystaff ||
+            !$libraraystaff->college ||
+            !$libraraystaff->college->departments ||
+            $libraraystaff->college->departments->isEmpty()){
+            throw new \Exception('Department not found.');
+        }
+
+//        if (!$libraraystaff || !$libraraystaff->college) {
+//            return response()->json([
+//                'success' => false,
+//                'message' => 'لم يتم العثور على بيانات الكلية أو الأقسام'
+//            ], 404);
+//        }
+
+//        $departmentId = $libraraystaff->college->department->first()->id;
+
+
+        return $libraraystaff->college->department->first()->id;
+    }
+
         public function getProjectDetails()
         {
             // Load necessary relationships
             $this->load([
-                'document:id,project_id,pathDo', 
-                'supervisor.user:id,name', 
-                'students.user:id,name,email', 
-                'students.socialmedie:id,student_id,linkes', 
-                'comments.user:id,name',  
+                'document:id,project_id,pathDo',
+                'supervisor.user:id,name',
+                'students.user:id,name,email',
+                'students.socialmedie:id,student_id,linkes',
+                'comments.user:id,name',
                 'evaluates' // Load ratings
             ]);
-        
+
             // Calculate the average rating
             $averageRating = $this->evaluates->avg('rating') ?? 0; // Default to 0 if no ratings
-        
+
             return [
                 'title' => $this->title,
                 'description' => $this->description,
@@ -85,7 +113,7 @@ class Project extends Model
                 }),
             ];
         }
-        
-        
+
+
 
 }

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 
 class ProjectController extends Controller
@@ -57,36 +58,69 @@ class ProjectController extends Controller
     {
 
     }
-    public function GetDepartmentIdAndSupervisorId(int $id){
+//    public function GetDepartmentIdAndSupervisorId(int $id){
+//
+//        $userCollegeId = $id;
+//        $department = Department::whereRelation('college', 'id', $userCollegeId)->get();
+//        $supervisorData =Supervisor::where('college_id', $userCollegeId)
+//                      ->with(['user:id,name'])
+//                      ->get();
+//                      $supervisors = $supervisorData->map(function ($supervisor) {
+//                        return [
+//                            'supervisor_id' => $supervisor->id,
+//                            'name' => $supervisor->user->name,
+//
+//                        ];
+//                    });
+//    return response()->json([
+//        'success' => true,
+//        'department'=>$department,
+//        'supervisor'=>$supervisors,
+//    ], 200);
+//
+//    }
 
-        $userCollegeId = $id;
-        $department = Department::whereRelation('college', 'id', $userCollegeId)->get();
-        $supervisorData =Supervisor::where('college_id', $userCollegeId)
-                      ->with(['user:id,name'])
-                      ->get();
-                      $supervisors = $supervisorData->map(function ($supervisor) {
-                        return [
-                            'supervisor_id' => $supervisor->id,
-                            'name' => $supervisor->user->name,
+    public function departmentId(): int
+    {
 
-                        ];
-                    });
-    return response()->json([
-        'success' => true,
-        'department'=>$department,
-        'supervisor'=>$supervisors,
-    ], 200);
-
+        $libraraystaff = LibrarayStaff::with(['college:id', 'college.department:id,name,college_id'])
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$libraraystaff ||
+            !$libraraystaff->college){
+            throw new \Exception('لايوجد مشاريع ');
+        }
+        return $libraraystaff->college->department->first()->id;
     }
+
 
     public function getAllProjects(Request $request)
     {
         try {
 
-            $libraraystaff=LibrarayStaff::with(['college:id','college.departments:id,name,college_id'])->where('user_id',Auth::id())->first();
+            $departmentId = $this->departmentId();
+            $projects = Project::with(['department', 'supervisor'])
+                ->where('department_id', $departmentId)
+                ->get();
+            $formattedProjects = $projects->map(function ($project) {
+                return [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'description' => $project->description,
+                    'videoUrl' => $project->videoUrl,
+                    'projectYear' => $project->projectYear,
+                    'department_name' => $project->department->name ?? null,
+                    'supervisor_name' => $project->supervisor->user->name ?? null,
+                ];
+            });
 
-            $projects = Project::where('department_id',$libraraystaff->college->departments->first()->id)->get();
-            return response()->json(['success' => true, 'data' => $projects], 200);
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedProjects
+            ], 200);
+
+//            return response()->json(['success' => true, 'data' => $projects], 200);
 
         }   catch (\Exception $exception) {
             return response()->json([
@@ -102,9 +136,7 @@ class ProjectController extends Controller
 
 
 
-
-
-public function store(Request $request)
+public function uploadeproject(Request $request)
 {
     $request->validate([
         'title' => 'required|string', // for lookup only
@@ -145,9 +177,34 @@ public function store(Request $request)
         'project' => $project
     ]);
 }
-    
 
 
+public function store(Request $request){
+
+    try{
+            $validator=Validator::make($request->all(), [
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'videoUrl' => 'nullable|url',
+                'projectYear' => 'required|date',
+                'department_id' => 'required',
+                'supervisor_id'=>'required',
+            ]);
+
+            $validatedData = $validator->validate();
+
+            $Project = Project::create($validatedData);
+
+            return response()->json(['success' => true,'message'=>'تمت الاضافة بنجاح ', 'data' => $Project], 201);
+
+        }catch (\Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $e->getMessage()
+            ],500);
+        }
+        }
     /**
      * Display the specified resource.
      */
@@ -159,18 +216,12 @@ public function store(Request $request)
                             ->where('supervisorStatus', true)
                             ->where('lbraryStatus', true)
                             ->first();
-           if (!$project) 
+           if (!$project)
            {
                return response()->json(['message' => 'Project not found'], 404);
            }
            $projectDetails = $project->getProjectDetails();
            return response()->json($projectDetails);
-        
-
-        //  project 'title','description','videoUrl',and the doucment pathDo of the this project from the document table
-        // also the  suopervisor name  of the project and the students name , emial and linkes   that belong to this project 
-        // also the comment of this project with the name of the user that post this comment 
-        
 
     }
 
@@ -187,41 +238,86 @@ public function store(Request $request)
      */
     public function update(Request $request, $id)
     {
-        // Validate incoming request
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'videoUrl' => 'nullable|url',
-            'projectYear' => 'required',
-            'department_id' => 'required',
-            'supervisor_id' => 'required',
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'title' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'videoUrl' => 'nullable|url',
+                'projectYear' => 'nullable|date',
+                'department_id' => 'nullable',
+                'supervisor_id' => 'nullable',
+            ]);
 
-        // Find project by ID
-        $project = Project::find($id);
+            $validatedData = $validator->validate();
 
-        // Check if project exists
-        if (!$project) {
+            $project = Project::findOrFail($id);
+
+            $project->update($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم التحديث بنجاح',
+                'data' => $project
+            ], 200);
+
+        } catch (\Exception $exception) {
             return response()->json([
                 'success' => false,
-                'message' => 'المشروع غير موجود',
-            ], 404);
+                'message' => 'حدث خطأ أثناء المعالجة',
+                'error' => $exception->getMessage()
+            ], 500);
         }
-
-        // Update project
-        $project->update($validatedData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'تم التحديث بنجاح',
-        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        try {
+
+            $project = Project::find($id);
+            if (!$project) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'المشروع غير موجود',
+                ]);
+            }
+            $department=Department::find($project->department_id);
+
+            $libraryStaff = LibrarayStaff::where('college_id', $department->college_id)
+                ->where('user_id', Auth::id())
+                ->get();
+
+            if ($libraryStaff->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك',
+                ]);
+            }
+
+            if ($project->students->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لايمكن حذف هذه المشروع '
+                ], 400);
+            }
+
+            $project->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'تم الحذف بنجاح',
+            ], 200);
+
+        }catch (\Exception $exception){
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء الحذف ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
+
+
     }
 }
