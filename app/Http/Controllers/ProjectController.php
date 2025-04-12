@@ -80,27 +80,26 @@ class ProjectController extends Controller
 //
 //    }
 
-    public function departmentId(): int
+    public function departmentId(): array
     {
-
         $libraraystaff = LibrarayStaff::with(['college:id', 'college.department:id,name,college_id'])
             ->where('user_id', Auth::id())
             ->first();
-        if (!$libraraystaff ||
-            !$libraraystaff->college){
+
+        if (!$libraraystaff || !$libraraystaff->college) {
             throw new \Exception('لايوجد مشاريع ');
         }
-        return $libraraystaff->college->department->first()->id;
+
+        $departmentIds = $libraraystaff->college->department->pluck('id')->toArray();
+
+        return $departmentIds;
     }
-
-
     public function getAllProjects(Request $request)
     {
         try {
 
-            $departmentId = $this->departmentId();
             $projects = Project::with(['department', 'supervisor'])
-                ->where('department_id', $departmentId)
+                ->whereIn('department_id', $this->departmentId())
                 ->get();
             $formattedProjects = $projects->map(function ($project) {
                 return [
@@ -113,15 +112,10 @@ class ProjectController extends Controller
                     'supervisor_name' => $project->supervisor->user->name ?? null,
                 ];
             });
-
-
             return response()->json([
                 'success' => true,
                 'data' => $formattedProjects
             ], 200);
-
-//            return response()->json(['success' => true, 'data' => $projects], 200);
-
         }   catch (\Exception $exception) {
             return response()->json([
                 'success' => false,
@@ -130,11 +124,6 @@ class ProjectController extends Controller
             ],500);
         }
     }
-    /**
-     * Store a newly created resource in storage.
-     */
-
-
 
 public function uploadeproject(Request $request)
 {
@@ -248,17 +237,40 @@ public function store(Request $request){
                 'supervisor_id' => 'nullable',
             ]);
 
-            $validatedData = $validator->validate();
-
             $project = Project::findOrFail($id);
 
-            $project->update($validatedData);
+            $validated = $validator->validate();
+            $updateUserData = [];
+
+            if (isset($validated['title'])) {
+                $updateUserData['title'] = $validated['title'];
+            }
+            if (isset($validated['description'])) {
+                $updateUserData['description'] = $validated['description'];
+            }
+            if (isset($validated['videoUrl'])) {
+                $updateUserData['videoUrl'] = $validated['videoUrl'];
+            }
+            if (isset($validated['projectYear'])) {
+                $updateUserData['projectYear'] = $validated['projectYear'];
+            }
+            if (isset($validated['department_id'])) {
+                $updateUserData['department_id'] = $validated['department_id'];
+            }
+            if (isset($validated['supervisor_id'])) {
+                $updateUserData['supervisor_id'] = $validated['supervisor_id'];
+            }
+
+            if (!empty($updateUserData)) {
+                $project->update($updateUserData);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم التحديث بنجاح',
-                'data' => $project
+                'data' => $project,
             ], 200);
+
 
         } catch (\Exception $exception) {
             return response()->json([

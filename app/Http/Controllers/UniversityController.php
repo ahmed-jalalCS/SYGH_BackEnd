@@ -88,9 +88,10 @@ class UniversityController extends Controller
      */
  public function show(int $id)
     {
+
         $universityCollege=College::where('universitie_id',$id)->get();
         return response()->json($universityCollege);
-          
+
     }
 
 

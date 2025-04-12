@@ -23,23 +23,26 @@ class StudentController extends Controller
      * Display a listing of the resource.
      */
 
-    public function departmentId(): int
+    public function departmentId(): array
     {
-
         $libraraystaff = LibrarayStaff::with(['college:id', 'college.department:id,name,college_id'])
             ->where('user_id', Auth::id())
             ->first();
-        if (!$libraraystaff ||
-            !$libraraystaff->college) {
+
+        if (!$libraraystaff || !$libraraystaff->college) {
             throw new \Exception('لايوجد مشاريع ');
         }
-        return $libraraystaff->college->department->first()->id;
+
+        $departmentIds = $libraraystaff->college->department->pluck('id')->toArray();
+
+        return $departmentIds;
     }
+
 
     public function index()
     {
 
-        $projects = Project::with('department:id,name', 'students.user')->where('department_id', $this->departmentId())->get();
+        $projects = Project::with('department:id,name', 'students.user')->whereIn('department_id', $this->departmentId())->get();
 
         return response()->json(['successes' => true, 'data' => $projects]);
     }
