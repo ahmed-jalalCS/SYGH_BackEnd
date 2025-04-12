@@ -35,6 +35,10 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasRole(["Super-Admin", "Admin"]);
     }
+    public function university()
+    {
+        return $this->hasOne(University::class, 'user_id');
+    }
 
     public function librarystaffs()
     {

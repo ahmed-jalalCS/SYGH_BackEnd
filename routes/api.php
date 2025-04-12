@@ -68,7 +68,7 @@ Route::controller(UserController::class)->group(function (){
     Route::get('/users','index')->middleware("auth:sanctum");
     Route::post('/user','store');// create new user
     Route::get('/user/{id}','show');// we should update the code
-    Route::delete('/user/{id}','destroy');// we should update the code
+    Route::delete('/user','destroy');// we should update the code
 
 });
 
@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group
 
 Route::prefix('/superadmin')->controller(SuperAdminController::class)->middleware(['auth:sanctum', 'super_admin'])->group(function () {
 
+
     Route::controller(UniversityController::class)->group(function () {
         Route::get('/universities', 'getAllUniversities');
         Route::post('/university', 'store');
@@ -116,9 +117,17 @@ Route::prefix('/superadmin')->controller(SuperAdminController::class)->middlewar
         Route::put('/university/{id}', 'update');
         Route::delete('/university/{id}', 'destroy');
     });
-    Route::controller(UserController::class)->group(function () {
-       Route::post('/user/{id}','createAdmin');
+//    Route::controller(UserController::class)->group(function () {
+//       Route::post('/user/{id}','createAdmin');
+//
+//    });
 
+    Route::controller(AdminController::class)->group(function () {
+        Route::get('/admins','index');
+        Route::post('/admin/{id}','store');
+        Route::get('/admin/{id}','show');
+        Route::put('/admin/{id}','update');
+        Route::delete('/admin/{id}','destroy');
     });
 
 });

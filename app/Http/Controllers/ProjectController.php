@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
 use App\Models\User;
 
 
@@ -128,23 +129,20 @@ class ProjectController extends Controller
 public function uploadeproject(Request $request)
 {
     $request->validate([
-        'title' => 'required|string', // for lookup only
         'description' => 'required|string',
         'videoUrl' => 'nullable|url',
         'document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
     ]);
 
-    // Search for the project by its title
-    $project = Project::where('title', $request->title)->first();
-
+    $student=Student::where('user_id', Auth::id())->first();
+    $project = Project::where('id', $student->project_id)->first();
     if (!$project) {
         return response()->json([
             'success' => false,
-            'message' => 'Project not found with the given title.',
+            'message' => 'لايوجد مشروع بهذا الاسم ',
         ], 404);
     }
 
-    // Update fields
     $project->description = $request->input('description');
     $project->videoUrl = $request->input('videoUrl');
 
@@ -162,7 +160,7 @@ public function uploadeproject(Request $request)
 
     return response()->json([
         'success' => true,
-        'message' => 'Project updated successfully.',
+        'message' => 'تم الرفع بنجاح',
         'project' => $project
     ]);
 }
@@ -207,7 +205,7 @@ public function store(Request $request){
                             ->first();
            if (!$project)
            {
-               return response()->json(['message' => 'Project not found'], 404);
+               return response()->json(['message' => 'لايوجد مشروع '], 404);
            }
            $projectDetails = $project->getProjectDetails();
            return response()->json($projectDetails);
