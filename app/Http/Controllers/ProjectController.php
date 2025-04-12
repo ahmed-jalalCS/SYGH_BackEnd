@@ -107,7 +107,7 @@ class ProjectController extends Controller
                     'id' => $project->id,
                     'title' => $project->title,
                     'description' => $project->description,
-                    'videoUrl' => $project->videoUrl,
+                    'lbraryStatus'=> $project->lbraryStatus,
                     'projectYear' => $project->projectYear,
                     'department_name' => $project->department->name ?? null,
                     'supervisor_name' => $project->supervisor->user->name ?? null,

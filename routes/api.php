@@ -94,7 +94,6 @@ Route::middleware(['auth:sanctum'] )->controller(DocumentController::class)->gro
 
 });
 Route::middleware(['auth:sanctum'] )->controller(EvaluateController::class)->group(function (){
-
      Route::post('/evaluate/{id}','store');
      Route::get('evaluate/{id}','show');
 
@@ -109,13 +108,17 @@ Route::middleware(['auth:sanctum'])->controller(ProjectController::class)->group
 
 Route::prefix('/superadmin')->controller(SuperAdminController::class)->middleware(['auth:sanctum', 'super_admin'])->group(function () {
 
+    Route::get('/dashboard/stats', 'getDashboardStats');
 
     Route::controller(UniversityController::class)->group(function () {
         Route::get('/universities', 'getAllUniversities');
+        Route::get('/universities/statices', 'getALLUniversitiesDoesNotHaveAdmin');
         Route::post('/university', 'store');
         Route::get('/university/{id}', 'viewUniversity');
         Route::put('/university/{id}', 'update');
         Route::delete('/university/{id}', 'destroy');
+        
+        
     });
 //    Route::controller(UserController::class)->group(function () {
 //       Route::post('/user/{id}','createAdmin');

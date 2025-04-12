@@ -118,7 +118,7 @@ class SuperAdminController extends Controller
 
                 'departments_stats' => [
                     'total' => Department::count(),
-                    'by_college' => College::withCount('departments')
+                    'by_college' => College::withCount('department')
                         ->get()
                         ->map(function ($college) {
                             return [

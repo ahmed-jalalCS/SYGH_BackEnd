@@ -47,7 +47,6 @@ class UniversityController extends Controller
 
             $validatedData = $request->only(['name', 'address']);
             $validatedData['image'] = $imagePath;
-            $validatedData['user_id']=1;
             $university = University::create($validatedData);
 
             return response()->json([
@@ -55,7 +54,7 @@ class UniversityController extends Controller
                 'message' => 'تمت الإضافة بنجاح',
                 'data' => $university,
             ], 201);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء معالجة الطلب.',
@@ -68,6 +67,12 @@ class UniversityController extends Controller
     {
         $universities = University::with('colleges')
             ->paginate($request->query('per_page', 10));
+        return response()->json(['success' => true, 'data' => $universities]);
+    }
+
+    public function getALLUniversitiesDoesNotHaveAdmin()
+    {
+        $universities= University::where('user_id',null)->get();
         return response()->json(['success' => true, 'data' => $universities]);
     }
 
@@ -113,7 +118,7 @@ class UniversityController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'sometimes|string|max:255',
                 'address' => 'sometimes|string|max:255',
-                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:4096',
             ]);
             if ($validator->fails()) {
                 return response()->json([
@@ -135,7 +140,7 @@ class UniversityController extends Controller
                 'data' => $university,
             ], 200);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ أثناء المعالجة',
