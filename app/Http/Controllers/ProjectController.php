@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use function PHPUnit\Framework\isEmpty;
 
 
 class ProjectController extends Controller
@@ -126,44 +127,50 @@ class ProjectController extends Controller
         }
     }
 
-public function uploadeproject(Request $request)
-{
-    $request->validate([
-        'description' => 'required|string',
-        'videoUrl' => 'nullable|url',
-        'document' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-    ]);
+    public function uploadeproject(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'description' => 'required',  // Updated to 'required'
+            'videoUrl' => 'nullable|url',
+            'pathDo' => 'required|file|mimes:pdf,doc,docx|max:10240',
+        ]);
 
-    $student=Student::where('user_id', Auth::id())->first();
-    $project = Project::where('id', $student->project_id)->first();
-    if (!$project) {
+        $validatedData = $validator->validate();
+        $student = Student::where('user_id', Auth::id())
+            ->where('isTemLeder', 1)
+            ->first();
+        if (isEmpty($student)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح لك ',
+            ]);
+        }
+        $project = Project::find($student->project_id);
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لايوجد مشروع بهذا الاسم ',
+            ], 404);
+        }
+        $project->update([
+            'description' => $request->input('description'),
+            'videoUrl' => $request->input('videoUrl'),
+        ]);
+        if ($request->hasFile('pathDo')) {
+            $file = $request->file('pathDo');
+            $path = $file->store('projects/documents', 'public');
+
+            $project->document()->create([
+                'pathDo' => Storage::url($path),
+            ]);
+        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'لايوجد مشروع بهذا الاسم ',
-        ], 404);
+            'success' => true,
+            'message' => 'تم الرفع بنجاح',
+            'project' => $project
+        ]);
     }
-
-    $project->description = $request->input('description');
-    $project->videoUrl = $request->input('videoUrl');
-
-    // Upload new document if provided
-   if ($request->hasFile('document')) {
-    $file = $request->file('document');
-    $originalName = $file->getClientOriginalName(); // ✅ THIS is what you're missing
-    $path = $file->store('projects/documents', 'public');
-
-    $project->document = Storage::url($path);
-    // $project->document = $originalName; // ✅ You must assign this
-}
-
-    $project->save();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'تم الرفع بنجاح',
-        'project' => $project
-    ]);
-}
 
 
 public function store(Request $request){

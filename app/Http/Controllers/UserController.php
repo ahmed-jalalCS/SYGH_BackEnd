@@ -59,16 +59,42 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show()
     {
 
-        $userData=User::findOrFail($id);
+        $superAdmin=User::where('id',Auth::id())
+                                ->where('role_id',1) ->first();
+        if($superAdmin){
+            return response()->json(['successes'=>true,'data'=>$superAdmin],200);
+        }
+        $admin=User::where('id',Auth::id())
+                   ->where('role_id',2) ->first();
+        if($admin){
+            return response()->json(['successes'=>true,'data'=>$admin],200);
+        }
+        $librarystaff=User::with('librarystaffs') ->where('id',Auth::id())
+                            ->where('role_id',3) ->first();
+        if($librarystaff){
+            return response()->json(['successes'=>true,'data'=>$librarystaff],200);
+        }
+        $supervisor=User::with('supervisors') ->where('id',Auth::id())
+                          ->where('role_id',4) ->first();
+        if($supervisor){
+            return response()->json(['successes'=>true,'data'=>$supervisor],200);
+        }
+        $student=User::with('students','students.socialmedies') ->where('id',Auth::id())
+                      ->where('role_id',5) ->first();
+        if($student){
+            return response()->json(['successes'=>true,'data'=>$student],200);
+        }
+        $user=User::where('id',Auth::id())
+            ->where('role_id',6) ->first();
+        if($user){
+            return response()->json(['successes'=>true,'data'=>$user],200);
+        }
 
-        return response()->json([
-            'success'=>true,
-            'message'=>'بيانات المستخدم ',
-            'data'=>$userData,
-        ]);
+
+
     }
 
     /**
@@ -82,9 +108,131 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+
+        $superAdmin=User::where('id',Auth::id())
+            ->where('role_id',1) ->first();
+        if($superAdmin){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable',
+                    'password' => 'nullable|min:10',
+                ]);
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $superAdmin->update($validatedData);
+                return response()->json([
+                    'success' => true,
+                    'data' => $superAdmin
+                ], 200);
+        }
+
+        $admin=User::where('id',Auth::id())->where('role_id',2) ->first();
+        if($admin){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable',
+                    'password' => 'nullable|min:10',
+                ]);
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $admin->update($validatedData);
+                return response()->json([
+                    'success' => true,
+                    'data' => $admin
+                ], 200);
+        }
+        $librarystaff=User::with('librarystaffs') ->where('id',Auth::id())
+            ->where('role_id',3) ->first();
+        if($librarystaff){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable',
+                    'password' => 'nullable|min:10',
+                ]);
+
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $librarystaff->update($validatedData);
+                return response()->json([
+                    'success' => true,
+                    'data' => $librarystaff
+                ], 200);
+        }
+        $supervisor=User::with('supervisors') ->where('id',Auth::id())
+            ->where('role_id',4) ->first();
+        if($supervisor){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable',
+                    'password' => 'nullable|min:10',
+                    'supervisorDgree' => 'nullable|string|max:255',
+                ]);
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $supervisorDegree = $validatedData['supervisorDgree'] ?? null;
+                unset($validatedData['supervisorDgree']);
+                $supervisor->update($validatedData);
+                if ($supervisorDegree !== null && $supervisor->supervisors) {
+                    $supervisor->supervisors->update([
+                        'supervisorDgree' => $supervisorDegree
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $supervisor->load('supervisors') // reload relation
+                ], 200);
+        }
+        $student=User::with('students','students.socialmedies') ->where('id',Auth::id())
+            ->where('role_id',5) ->first();
+        if($student){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable|string|max:255',
+                    'password' => 'nullable|min:10',
+                    'linkes' => 'nullable|url', // Assuming linkes is a URL
+                ]);
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $linkes = $validatedData['linkes'] ?? null;
+                unset($validatedData['linkes']);
+                $student->update($validatedData);
+                if ($linkes !== null && $student->students && $student->students->socialmedies) {
+                    $student->students->socialmedies->update([
+                        'linkes' => $linkes
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $student->load('students.socialmedies')
+                ], 200);
+
+        }
+        $user=User::where('id',Auth::id())
+            ->where('role_id',6) ->first();
+        if($user){
+                $validator = Validator::make($request->all(), [
+                    'name' => 'nullable|string|max:255',
+                    'password' => 'nullable|min:10',
+                ]);
+                $validatedData = $validator->validated();
+                if (isset($validatedData['password'])) {
+                    $validatedData['password'] = Hash::make($validatedData['password']);
+                }
+                $user->update($validatedData);
+                return response()->json([
+                    'success' => true,
+                    'data' => $user
+                ], 200);
+        }
     }
 
     public function destroy()
@@ -101,45 +249,5 @@ class UserController extends Controller
             'message'=>'تم حذف الحساب بنجاح ',
 
         ]);
-
     }
-
-//    public function createAdmin(Request $request,int $id){
-//
-//        try {
-//
-//            $university=University::findOrFail($id);
-//            if ($university->user_id !=null)
-//                {
-//                    return response()->json([
-//                        'success'=>true,
-//                        'message'=>'هذة الجامعة لديها مسؤل بالفعل'
-//                    ],200);
-//                }
-//            $validator= Validator::make($request->all(),[
-//                'name'=> 'required',
-//                'email'=>'required|email',
-//                'password'=>'required',
-//            ]);
-//            if($validator->fails()){
-//                return response()->json(['success'=>false,'errors'=>$validator->errors()]);
-//            }
-//
-//            $ValidateData=$validator->validated();
-//            $ValidateData['role_id'] = 2;
-//            $ValidateData['password'] = Hash::make($ValidateData['password']);
-//            $user = User::create($ValidateData);
-//            $university->user_id = $user->id;
-//            $university->save();
-//            return response()->json([
-//                'success'=>true,
-//                 'message'=>'تم الاظافه بنجاح',
-//                'data'=>$user
-//            ],200);
-//        }catch (ModelNotFoundException $e) {
-//            return response()->json([
-//                'error' => "لايوجد جامعة"
-//            ], 404);
-//        }
-//    }
 }
