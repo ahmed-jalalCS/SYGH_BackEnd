@@ -27,6 +27,4 @@ class University extends Model
         return $this->hasOne(User::class,'role_id');
     }
 
-
-
 }

@@ -130,6 +130,7 @@ Route::prefix('/superadmin')->controller(SuperAdminController::class)->middlewar
 
 Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:sanctum','admin'])->group(function () {
 
+
     Route::controller(CollegeController::class)->group(function () {
        Route::get('/colleges', 'getAllColleges');
        Route::post('/colleges/{id}', 'store');
@@ -139,6 +140,7 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
     Route::controller(LibraryStaffController::class)->group(function (){
        Route::post('/colleges/{id}/addlibraraystaff','store');
        Route::delete('/colleges/{id}/deletelibraraystaff','destroy');
+
     });
 });
 Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum','libraraystaff'])->group(function (){

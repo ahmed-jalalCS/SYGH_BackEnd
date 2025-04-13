@@ -70,14 +70,26 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Login successful',
-            'data' => [
+        if ($user->role_id==5)
+        {
+            $user->load('students');
+
+            return response()->json([
+                'success' => true,
                 'user' => $user,
                 'token' => $token
-            ]
-        ]);
+            ], 200);
+        }
+        else {
+            return response()->json([
+                'status' => true,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token
+                ]
+            ]);
+        }
     }
 
     public function logout(Request $request)
@@ -90,4 +102,4 @@ class AuthController extends Controller
         'message' => 'Successfully logged out'
     ], 200);
 }
-} 
+}
