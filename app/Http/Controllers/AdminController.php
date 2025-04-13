@@ -134,7 +134,7 @@ class AdminController extends Controller
         }
     }
 
-    public function destroyUser($userId)
+    public function destroy($userId)
     {
         try {
             $user = User::findOrFail($userId);

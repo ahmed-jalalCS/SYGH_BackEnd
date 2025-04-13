@@ -66,7 +66,7 @@ class UniversityController extends Controller
     public function getAllUniversities(Request $request)
     {
         $universities = University::with('colleges')
-            ->paginate($request->query('per_page', 10));
+            ->paginate($request->query('per_page', 20));
         return response()->json(['success' => true, 'data' => $universities]);
     }
 
@@ -166,7 +166,7 @@ class UniversityController extends Controller
             if ($university->colleges()->count() > 0) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'لايمكن حذف هذه الجامعة'
+                    'message' => 'لايمكن حذف هذه الجامعة لأنها تحوي كليات'
                 ], 400);
             }
             if ($university->image) {
