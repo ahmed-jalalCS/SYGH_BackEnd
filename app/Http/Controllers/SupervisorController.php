@@ -58,7 +58,7 @@ class SupervisorController extends Controller
     }
 
 
-    
+
 
 
     public function store(Request $request)
@@ -68,38 +68,39 @@ class SupervisorController extends Controller
                 'name' => 'required|string',
                 'supervisorDgree' => 'nullable|string|max:255',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'error' => $validator->errors(),
                 ]);
             }
-    
+
             $validatedData = $validator->validate();
             $validatedData['email'] = Str::random(8) . '@gmail.com';
             $rawPassword = Str::random(12); // keep for optional use or logging
+            $validatedData['plain_password']= $rawPassword;
             $validatedData['password'] = Hash::make($rawPassword);
             $validatedData['role_id'] = 4;
-    
+
             $collegeId = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
             $user = User::create($validatedData);
-    
+
             $supervisor = Supervisor::create([
                 'user_id' => $user->id,
                 'college_id' => $collegeId,
                 'supervisorDgree' => $validatedData['supervisorDgree'] ?? null,
             ]);
-    
+
             // Merge user and supervisor data
             $mergedData = array_merge($user->toArray(), $supervisor->toArray());
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'تمت الاضافة بنجاح',
                 'data' => $mergedData,
             ]);
-    
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -108,7 +109,7 @@ class SupervisorController extends Controller
             ], 500);
         }
     }
-    
+
 
 
 
@@ -150,7 +151,7 @@ class SupervisorController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string',
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $supervisor->user_id,
-            'password' => 'nullable|string|max:255',
+            'password' => 'nullable|min:10',
             'supervisorDgree' => 'nullable|string|max:255',
         ]);
 
@@ -162,7 +163,7 @@ class SupervisorController extends Controller
         }
 
         $validatedData = $validator->validate();
-
+        $validatedData['plain_password'] =$validatedData['password'] ?? '';
         if (!empty($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
         } else {

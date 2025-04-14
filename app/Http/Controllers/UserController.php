@@ -27,7 +27,6 @@ class UserController extends Controller
         //
     }
 
-
     public function store(Request $request)
     {
 
@@ -37,7 +36,6 @@ class UserController extends Controller
                 'email' => 'required|email|unique:users,email', // Ensure email is unique
                 'password' => 'required|min:10',
             ]);
-
             $validatedData = $validator->validated();
             $validatedData['password'] = Hash::make($validatedData['password']);
 
@@ -55,10 +53,6 @@ class UserController extends Controller
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     */
     public function show()
     {
 
@@ -96,18 +90,11 @@ class UserController extends Controller
 
 
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request)
     {
 

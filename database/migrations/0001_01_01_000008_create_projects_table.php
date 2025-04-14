@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('videoUrl')->nullable();
             $table->boolean('lbraryStatus')->default(0);
-            $table->boolean('supervisorStatus')->default(0);
+            $table->boolean('supervisorStatus')->default(1);
             $table->date('projectYear');
             $table->foreignId('department_id')
                     ->constrained()

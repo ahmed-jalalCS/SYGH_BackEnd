@@ -83,7 +83,7 @@ class DepartmentController extends Controller
         }
 
 
-        
+
     }
     public function store(Request $request)
     {
@@ -113,11 +113,6 @@ class DepartmentController extends Controller
 
         }
     }
-
-
-
-
-
 
     public function edit(string $id)
     {
@@ -169,11 +164,6 @@ class DepartmentController extends Controller
             ],500);
         }
     }
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
 
     public function destroy(int $id)
     {

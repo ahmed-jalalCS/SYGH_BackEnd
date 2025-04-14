@@ -11,8 +11,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
+use App\Models\Project;
+use App\Models\Student;
+use App\Models\Supervisor;
+use App\Models\Department;
+use App\Models\Role;
+
+
 class AdminController extends Controller
 {
+
     public function index()
     {
         $allAdmin = User::with('university:id,name,user_id')
@@ -35,6 +43,157 @@ class AdminController extends Controller
 
     }
 
+    public function getAdminDashboardStats()
+    {
+        try {
+            $university = University::where('user_id', Auth::id())->first();
+
+            if (!$university) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'University not found for this user.'
+                ], 404);
+            }
+
+            $stats = [
+                'total_counts' => [
+                    'projects' => Project::whereHas('students.department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'students' => Student::whereHas('department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'colleges' => College::where('universitie_id', $university->id)->count(),
+
+                    'departments' => Department::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'supervisors' => Supervisor::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                ],
+
+                'projects_stats' => [
+                    'total' => Project::whereHas('students.department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'by_year' => Project::whereHas('students.department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })
+                        ->selectRaw('YEAR(projectYear) as year, COUNT(*) as count')
+                        ->groupBy('year')
+                        ->orderBy('year', 'desc')
+                        ->get(),
+                    'by_department' => Department::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })
+                        ->withCount(['projects' => function ($q) use ($university) {
+                            $q->whereHas('students.department.college.university', function ($sub) use ($university) {
+                                $sub->where('id', $university->id);
+                            });
+                        }])
+                        ->having('projects_count', '>', 0)
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->projects_count
+                            ];
+                        })
+                ],
+
+                'students_stats' => [
+                    'total' => Student::whereHas('department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+                    'by_department' => Department::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })
+                        ->withCount(['students' => function ($q) use ($university) {
+                            $q->whereHas('department.college.university', function ($sub) use ($university) {
+                                $sub->where('id', $university->id);
+                            });
+                        }])
+                        ->having('students_count', '>', 0)
+                        ->get()
+                        ->map(function ($dept) {
+                            return [
+                                'department' => $dept->name,
+                                'count' => $dept->students_count
+                            ];
+                        })
+                ],
+
+                'supervisors_stats' => [
+                    'total' => Supervisor::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'by_college' => College::where('universitie_id', $university->id)
+                        ->withCount('supervisors')
+                        ->having('supervisors_count', '>', 0)
+                        ->get()
+                        ->map(function ($college) {
+                            return [
+                                'college' => $college->name,
+                                'count' => $college->supervisors_count
+                            ];
+                        })
+                ],
+
+                'departments_stats' => [
+                    'total' => Department::whereHas('college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })->count(),
+
+                    'by_college' => College::where('universitie_id', $university->id)
+                        ->withCount('department')
+                        ->get()
+                        ->map(function ($college) {
+                            return [
+                                'college' => $college->name,
+                                'count' => $college->departments_count
+                            ];
+                        })
+                ],
+
+                'recent_activity' => [
+                    'latest_projects' => Project::whereHas('students.department.college.university', function ($q) use ($university) {
+                        $q->where('id', $university->id);
+                    })
+                        ->with(['supervisor.user:id,name', 'department:id,name'])
+                        ->latest()
+                        ->take(5)
+                        ->get()
+                        ->map(function ($project) {
+                            return [
+                                'id' => $project->id,
+                                'title' => $project->title,
+                                'supervisor' => $project->supervisor->user->name ?? 'N/A',
+                                'department' => $project->department->name ?? 'N/A',
+                                'created_at' => $project->created_at
+                            ];
+                        }),
+              ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching admin dashboard statistics: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function create()
     {
         //
@@ -55,7 +214,7 @@ class AdminController extends Controller
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
                 'email'=>'required|email',
-                'password'=>'required',
+                'password'=>'required|min:10',
             ]);
             if($validator->fails()){
                 return response()->json(['success'=>false,'errors'=>$validator->errors()]);
@@ -63,6 +222,7 @@ class AdminController extends Controller
 
             $ValidateData=$validator->validated();
             $ValidateData['role_id'] = 2;
+//            $ValidateData['plain_password']=$ValidateData['password'] ?? '';
             $ValidateData['password'] = Hash::make($ValidateData['password']);
             $user = User::create($ValidateData);
             $university->user_id = $user->id;
@@ -99,8 +259,7 @@ class AdminController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name'  => 'sometimes|required|string',
-                'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-                'password' => 'nullable|string|min:6',
+                'password' => 'nullable|min:10',
             ]);
 
             if ($validator->fails()) {
@@ -112,6 +271,7 @@ class AdminController extends Controller
 
             $validatedData = $validator->validated();
 
+//            $ValidateData['plain_password'] =$validatedData['password'] ?? '';
             if (!empty($validatedData['password'])) {
                 $validatedData['password'] = Hash::make($validatedData['password']);
             } else {

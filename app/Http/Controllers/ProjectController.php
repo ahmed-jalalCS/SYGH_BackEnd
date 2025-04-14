@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
+<<<<<<< Updated upstream
 use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Log;
+=======
+>>>>>>> Stashed changes
 use App\Models\LibrarayStaff;
-
 use App\Models\Project;
 use App\Models\Department;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use function PHPUnit\Framework\isEmpty;
@@ -22,12 +22,20 @@ use function PHPUnit\Framework\isEmpty;
 
 class ProjectController extends Controller
 {
+<<<<<<< Updated upstream
     /**
      * Display a listing of the resource.
      */
    public function index()
 {
     $projects = Project::with(['evaluates', 'document']) // تحميل العلاقة
+=======
+
+    public function index()
+    {
+        $projects = Project::with('evaluates')
+        ->select('id', 'title', 'description', 'projectYear')
+>>>>>>> Stashed changes
         ->where('lbraryStatus', 1)
         ->where('supervisorStatus', 1)
         ->get()
@@ -56,34 +64,11 @@ class ProjectController extends Controller
         return response()->json($Projects);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
 
     }
-//    public function GetDepartmentIdAndSupervisorId(int $id){
-//
-//        $userCollegeId = $id;
-//        $department = Department::whereRelation('college', 'id', $userCollegeId)->get();
-//        $supervisorData =Supervisor::where('college_id', $userCollegeId)
-//                      ->with(['user:id,name'])
-//                      ->get();
-//                      $supervisors = $supervisorData->map(function ($supervisor) {
-//                        return [
-//                            'supervisor_id' => $supervisor->id,
-//                            'name' => $supervisor->user->name,
-//
-//                        ];
-//                    });
-//    return response()->json([
-//        'success' => true,
-//        'department'=>$department,
-//        'supervisor'=>$supervisors,
-//    ], 200);
-//
-//    }
 
     public function departmentId(): array
     {
@@ -224,7 +209,6 @@ public function store(Request $request){
             $validatedData = $validator->validate();
 
             $Project = Project::create($validatedData);
-
             return response()->json(['success' => true,'message'=>'تمت الاضافة بنجاح ', 'data' => $Project], 201);
 
         }catch (\Exception $e){
@@ -235,9 +219,7 @@ public function store(Request $request){
             ],500);
         }
         }
-    /**
-     * Display the specified resource.
-     */
+
      public function show(int  $id)
     {
 

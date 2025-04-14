@@ -52,9 +52,6 @@ class StudentController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
 
@@ -73,8 +70,9 @@ class StudentController extends Controller
 
             $validatedData = $validator->validate();
             $validatedData['email'] = Str::random(8) . '@gmail.com';
-            $validatedData['password'] = Str::random(12);
-            $validatedData['password'] = Hash::make($validatedData['password']);
+            $rawPassword = Str::random(12);
+            $validatedData['plain_password']= $rawPassword;
+            $validatedData['password'] = Hash::make($rawPassword);
             $validatedData['role_id'] = 5;
 
             $userData = User::create($validatedData);
@@ -90,17 +88,11 @@ class StudentController extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         //
@@ -114,7 +106,7 @@ class StudentController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'nullable|string|max:255',
                 'email' => 'nullable|email|max:255|unique:users,email,' . $student->user_id,
-                'password' => 'nullable|string|max:255',
+                'password' => 'nullable|min:10',
                 'studentUnid' => 'nullable|integer',
                 'isTemLeder' => 'nullable|integer',
                 'project_id' => 'nullable|integer',
@@ -123,6 +115,7 @@ class StudentController extends Controller
 
             $validated = $validator->validate();
             $updateUserData = [];
+            $updateUserData['plain_password'] =$validated['password'] ?? '';
             if (isset($validated['name'])) {
                 $updateUserData['name'] = $validated['name'];
             }

@@ -27,17 +27,9 @@ Route::get('/test', function () {
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-
-
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-});
-
-
-//Route::get('/user', function (Request $request) {
-//    return $request->user();
-//})->middleware('auth:sanctum');
+//Route::middleware('auth:sanctum')->group(function () {
+//    Route::post('/logout', [AuthController::class, 'logout']);
+//});
 
 Route:: middleware(['auth:sanctum'] )->controller(UniversityController::class)->group(function(){
     Route::get('/universities','index')->withoutMiddleware(['auth:sanctum']);// all universities
@@ -57,7 +49,7 @@ Route:: middleware(['auth:sanctum'] )->controller(DepartmentController::class)->
 
 Route:: middleware(['auth:sanctum'] )->controller(CommentController::class)->group(function (){
 
-    Route::post('/project/{project:id}/comment','store');// this is for add new comment to the project
+    Route::post('/project/{project:id}/comment','store');
     Route::delete('/comment/{id}','destroy');//delete the comment
     Route::put('/comment/{id}','update');// update  the comment
 });
@@ -108,6 +100,8 @@ Route::prefix('/superadmin')->controller(SuperAdminController::class)->middlewar
 
     Route::get('/dashboard/stats', 'getDashboardStats');
 
+    Route::get('admins/information', 'getAllRoleTwoUsers');
+
     Route::controller(UniversityController::class)->group(function () {
         Route::get('/universities', 'getAllUniversities');
         Route::get('/universities/statices', 'getALLUniversitiesDoesNotHaveAdmin');
@@ -132,6 +126,7 @@ Route::prefix('/superadmin')->controller(SuperAdminController::class)->middlewar
 Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:sanctum','admin'])->group(function () {
 
 
+    Route::get('/dashboard/stats', 'getAdminDashboardStats');
     Route::controller(CollegeController::class)->group(function () {
        Route::get('/colleges', 'getAllColleges');
        Route::post('/colleges/{id}', 'store');
@@ -139,16 +134,18 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
        Route::delete('/colleges/{id}', 'deleteCollege');
     });
     Route::controller(LibraryStaffController::class)->group(function (){
+       Route::get('/libraraystaffs','index');
        Route::post('/colleges/{id}/addlibraraystaff','store');
        Route::delete('/colleges/{id}/deletelibraraystaff','destroy');
+       Route::put('/colleges/{id}/updatelibraraystaff','update');
 
     });
 });
 Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum','libraraystaff'])->group(function (){
 
-
-
     Route::get('/','index');
+    Route::get('/students/information','getAllStudents');
+    Route::get('/supervisors/information','getAllSupervisors');
     Route::controller(DepartmentController::class)->group(function (){
         Route::get('/departments', 'getAllDepartments');
         Route::post('/departments', 'store');
@@ -169,14 +166,11 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
         Route::put('/students/{id}', 'update');
         Route::delete('/students/{id}', 'destroy');
 
-
     });
     Route::controller(ProjectController::class)->group(function (){
         Route::get('/projects', 'getAllProjects');
         Route::post('/projects', 'store');
         Route::put('/projects/{id}', 'update');
         Route::delete('/projects/{id}', 'destroy');
-
-
     });
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\College;
 use App\Models\Project;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Imports\ProjectImportLibraryStaff;
 use App\Models\Department;
@@ -23,9 +24,7 @@ use function PHPUnit\Framework\isEmpty;
 
 class LibraryStaffController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
         try {
@@ -36,18 +35,14 @@ class LibraryStaffController extends Controller
                     'message' => 'غير مصرح بك'
                 ], 401);
             }
-
             $libraryStaff = LibrarayStaff::where('user_id', $user->id)->first();
             if (!$libraryStaff) {
                 return response()->json([
                     'success' => false,
                     'message'=>'غير موجود هذا الموظف',
-//                    'message' => 'Library staff record not found'
                 ], 404);
             }
-
             $collegeId = $libraryStaff->college_id;
-
             $stats = [
                 'projects' => [
                     'total' => Project::whereHas('department', function ($query) use ($collegeId) {
@@ -144,10 +139,65 @@ class LibraryStaffController extends Controller
         }
     }
 
+    public function departmentId(): array
+    {
+        $libraraystaff = LibrarayStaff::with(['college:id', 'college.department:id,name,college_id'])
+            ->where('user_id', Auth::id())
+            ->first();
 
+        if (!$libraraystaff || !$libraraystaff->college) {
+            throw new \Exception('لايوجد مشاريع ');
+        }
+
+        $departmentIds = $libraraystaff->college->department->pluck('id')->toArray();
+
+        return $departmentIds;
+    }
+
+
+    public function getAllStudents(Request $request)
+    {
+
+
+        try {
+
+            $students=Student::with('user')->whereIn('department_id', $this->departmentId())->get();
+
+            $formattedProjects = $students->map(function ($students) {
+                return [
+                    'id' => $students->id,
+                    'name' => $students->user->name,
+                    'email' => $students->user->email,
+                    'plain_password' => $students->user->plain_password ?? null
+                ];
+            });
+            return response()->json([
+                'success' => true,
+                'data' => $formattedProjects
+            ], 200);
+        }   catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
+
+
+    }
+
+    public  function getAllSupervisors(Request $request)
+    {
+        $librarystaff = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
+        $supervisor=Supervisor::with('user:id,email,plain_password')->where('college_id',$librarystaff)->get();
+        return response()->json([
+            'success' => true,
+            'data' => $supervisor
+        ]);
+    }
     public function create()
     {
-        //
+
     }
 
 // The admin functionality
@@ -169,15 +219,14 @@ class LibraryStaffController extends Controller
 
             $validator= Validator::make($request->all(),[
                 'name'=> 'required',
-                'email'=>'required|email',
-                'password'=>'required',
+                'email'=>'required|email|unique:users,email',
+                'password'=>'required|min:10',
             ]);
             if($validator->fails()){
                 return response()->json(['success'=>false,'errors'=>$validator->errors()]);
             }
 
             $ValidateData=$validator->validated();
-
             $ValidateData['role_id'] = Role::where('name','Library Staff')->value('id');
             $ValidateData['password'] = Hash::make($ValidateData['password']);
             $user = User::create($ValidateData);
@@ -231,7 +280,39 @@ class LibraryStaffController extends Controller
 
     public function update(Request $request, string $id)
     {
-        //
+
+        try {
+            $user = User::findOrFail($id);
+            $validator = Validator::make($request->all(), [
+                'name'  => 'sometimes|required|string',
+                'password' => 'nullable|min:10',
+            ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => $validator->errors()
+                ], 422);
+            }
+            $validatedData = $validator->validated();
+            if (!empty($validatedData['password'])) {
+                $validatedData['password'] = Hash::make($validatedData['password']);
+            } else {
+                unset($validatedData['password']);
+            }
+            $user->update($validatedData);
+            return response()->json([
+                'success' => true,
+                'message' => 'تم التحديث بنجاح',
+                'data'    => $user
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الجامعة أو المستخدم غير موجود',
+            ], 404);
+        }
+
+
     }
 
 

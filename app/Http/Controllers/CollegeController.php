@@ -22,30 +22,23 @@ class CollegeController extends Controller
         return response()->json(['success' => true, 'data' => $colleges], 200);
 
     }
-public function show(int $id)
-{
-    $college = College::find($id);
-
-    if (!$college) {
+    public function show(int $id)
+    {
+        $college = College::find($id);
+        if (!$college) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الكلية غير موجودة'
+            ], 404);
+        }
+        $departments = Department::where('college_id', $id)->get();
         return response()->json([
-            'success' => false,
-            'message' => 'الكلية غير موجودة'
-        ], 404);
+            'success' => true,
+            'college_name' => $college->name,
+            'data' => $departments
+        ], 200);
     }
-
-    $departments = Department::where('college_id', $id)->get();
-
-    return response()->json([
-        'success' => true,
-        'college_name' => $college->name, // ✅ Add this
-        'data' => $departments
-    ], 200);
-}
-
-
-
-
-
+    // Admin Functionalty
     public function getAllColleges(Request $request)
     {
         $colleges = College::where('universitie_id', function ($query) {
@@ -67,8 +60,7 @@ public function show(int $id)
             $university = University::find($id);
             if (!$university) {return response()->json(['success'=>false,'message'=>'لاتوجد هذه الجامعة']);}
 
-            if (Auth::user()->id!==$university->user_id) {return response()->json(['error' => 'غير مصرح بك u'], 403);}
-
+            if (Auth::user()->id!==$university->user_id) {return response()->json(['error' => 'غير مصرح بك '], 403);}
             $validator=Validator::make($request->all(), [
                'name' => 'required |string|max:255',
             ]);
@@ -86,18 +78,12 @@ public function show(int $id)
 
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
     public function showAdmin(int $id)
     {
         try {
             $college=College::find($id);
             if (!$college) {return response()->json(['success' => false, 'message'=>'لايوجد كلية']);}
-
             if(Auth::user()->id!==$college->university->user_id){return response()->json(['error' => 'غير مصرح لفعل هذه العملية'], 403);}
-
             return response()->json(['success' => true, 'data' => $college->makeHidden('university')], 200);
         }catch (\Exception $e){
 
@@ -105,9 +91,6 @@ public function show(int $id)
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, int $id)
     {
 
@@ -157,15 +140,9 @@ public function show(int $id)
 
     }
 
-
-
-
     public function destroy(int $id)
     {
-        $college = College::findOrFail($id);
-        $college->delete();
 
-        return response()->json(['success' => true, 'message' => ' تم حذف الكلية بنجاح '], 200);
     }
 
 

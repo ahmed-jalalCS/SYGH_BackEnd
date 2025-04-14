@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
+
 class SuperAdminController extends Controller
 {
 
@@ -49,6 +50,22 @@ class SuperAdminController extends Controller
                 'message' => 'Error importing projects: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getAllRoleTwoUsers()
+    {
+        $users = User::where('role_id', 2)->get();
+
+        // Hash (encode) passwords before returning (if needed)
+        $users->transform(function ($user) {
+            $user->password = Hash::make($user->password); // encode current password
+            return $user;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $users
+        ]);
     }
 
     // Dashboard Statistics
