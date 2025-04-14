@@ -1,30 +1,18 @@
 <?php
 
+use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CollegeController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\UniversityController;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/test-pdf-cover', function () {
+    $pdfPath = storage_path('app/public/sample.pdf');
+
+    try {
+        $pdf = new Pdf($pdfPath);
+        $coverPath = storage_path('app/public/projects/covers/test.jpg');
+        $pdf->saveImage($coverPath);
+        return "✅ تم توليد الغلاف بنجاح";
+    } catch (\Exception $e) {
+        return "❌ فشل: " . $e->getMessage(); // ✅ نطبع الخطأ بالتفصيل
+    }
 });
 
-Route::get('/test', function () {
-    return ["laravel"=> app()->version(). " for Ouis Alhetar"];
-});
-
-Route::get('/allunv',[UniversityController::class,'index']);
-Route::get('/allcollege',[CollegeController::class,'index']);
-
-Route::controller(ProjectController::class)->group(function () {
-    Route::get('/allprojects', 'index');
-});
-Route::controller(DocumentController::class)->group(function(){
-Route::get('/document','index');
-});
-
-Route::controller(\App\Http\Controllers\LibraryStaffController::class)->group(function () {
-    Route::get('/librarystaff','index');
-
-});

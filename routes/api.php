@@ -64,8 +64,9 @@ Route:: middleware(['auth:sanctum'] )->controller(CommentController::class)->gro
 
 
 
-Route::middleware(['auth:sanctum'])->controller(UserController::class)->group(function (){
+Route::middleware(['auth:sanctum'])->controller(UserController::class)->group(function () {
 
+    Route::get('/users', 'index');
     Route::get('/profile','show');
     Route::put('/profile','update');
     Route::delete('/profile','destroy');

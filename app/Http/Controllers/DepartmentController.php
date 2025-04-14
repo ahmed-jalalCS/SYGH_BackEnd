@@ -33,21 +33,25 @@ class DepartmentController extends Controller
     }
     public function show(int $id)
     {
-        $department = Department::find($id);
+         $projects = Project::with('evaluates','department')
+         ->where('department_id',$id)
+        ->where('lbraryStatus', 1)
+        ->where('supervisorStatus', 1)
+        ->get()
+        ->map(function ($project) {
+            $averageRating = $project->evaluates->avg('rating'); // Calculate the average rating using Eloquent
 
-        $departmentProject = Project::select('id','title','description')
-            ->where('department_id', $id)
-            ->where('supervisorStatus', true)
-            ->where('lbraryStatus', true)
-            // ->with(['document' => fn($query) => $query->select('id', 'pathDo','project_id')])
-            ->get();
-        if ($departmentProject->isEmpty())
-        {
-            return response()->json(['message' => 'لايوجد مشاريع لهذا القسم '], 404);
-        }
-        return response()->json(['success' => true,
-        "department_name"=>$department->name,
-        'data' => $departmentProject], 200);
+            return [
+                'id'=>$project->id,
+                'title' => $project->title,
+                'description' => $project->description,
+                'projectYear' => $project->projectYear,
+                'average_rating' => round($averageRating, 2) ?? 0, // Handle cases where no ratings exist
+                'department_name'=>$project->department->name
+            ];
+        });
+
+    return response()->json($projects);
     }
 
     public function create()

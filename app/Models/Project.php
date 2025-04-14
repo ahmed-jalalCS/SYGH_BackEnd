@@ -21,6 +21,7 @@ class Project extends Model
         'supervisor_id',
         'updated_at',
         'created_at',
+        'cover_image',
     ];
         public function department()
         {
@@ -57,6 +58,8 @@ class Project extends Model
                 'students.socialmedie:id,student_id,linkes',
                 'comments.user:id,name',
                 'evaluates' // Load ratings
+               
+                
             ]);
 
             // Calculate the average rating
@@ -65,6 +68,7 @@ class Project extends Model
             return [
                 'title' => $this->title,
                 'description' => $this->description,
+                'cover_image'=>$this->cover_image,
                 'videoUrl' => $this->videoUrl,
                 'projectYear' => $this->projectYear,
                 'average_rating' => round($averageRating, 2), // Round to 2 decimal places

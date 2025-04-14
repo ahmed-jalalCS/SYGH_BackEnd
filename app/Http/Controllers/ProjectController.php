@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
-
-
+use Spatie\PdfToImage\Pdf;
+use Illuminate\Support\Facades\Log;
 use App\Models\LibrarayStaff;
 
 use App\Models\Project;
@@ -25,27 +25,30 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $projects = Project::with('evaluates')
-        ->select('id', 'title', 'description', 'projectYear')
+   public function index()
+{
+    $projects = Project::with(['evaluates', 'document']) // تحميل العلاقة
         ->where('lbraryStatus', 1)
         ->where('supervisorStatus', 1)
         ->get()
         ->map(function ($project) {
-            $averageRating = $project->evaluates->avg('rating'); // Calculate the average rating using Eloquent
+            $averageRating = $project->evaluates->avg('rating') ?? 0;
 
             return [
+                'id' => $project->id,
+                'department_id' => $project->department_id,
                 'title' => $project->title,
                 'description' => $project->description,
                 'projectYear' => $project->projectYear,
-                'average_rating' => round($averageRating, 2) ?? 0, // Handle cases where no ratings exist
+                'average_rating' => round($averageRating, 2),
+                'pathDo' => optional($project->document)->pathDo, // ✅ حماية من null
+                'cover_image'=>$project->cover_image,
             ];
         });
 
     return response()->json($projects);
+}
 
-    }
 
     public function DepartmentProjects(int $id){
 
@@ -127,50 +130,83 @@ class ProjectController extends Controller
         }
     }
 
-    public function uploadeproject(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'description' => 'required',  // Updated to 'required'
-            'videoUrl' => 'nullable|url',
-            'pathDo' => 'required|file|mimes:pdf,doc,docx|max:10240',
-        ]);
+  public function uploadeproject(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'description' => 'required',
+        'videoUrl' => 'nullable|url',
+        'pathDo' => 'required|file|mimes:pdf,doc,docx|max:10240',
+    ]);
 
-        $validatedData = $validator->validate();
-        $student = Student::where('user_id', Auth::id())
-            ->where('isTemLeder', 1)
-            ->first();
-        if (isEmpty($student)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح لك ',
-            ]);
-        }
-        $project = Project::find($student->project_id);
-        if (!$project) {
-            return response()->json([
-                'success' => false,
-                'message' => 'لايوجد مشروع بهذا الاسم ',
-            ], 404);
-        }
-        $project->update([
-            'description' => $request->input('description'),
-            'videoUrl' => $request->input('videoUrl'),
-        ]);
-        if ($request->hasFile('pathDo')) {
-            $file = $request->file('pathDo');
-            $path = $file->store('projects/documents', 'public');
+    $validatedData = $validator->validate();
 
-            $project->document()->create([
-                'pathDo' => Storage::url($path),
-            ]);
-        }
+    $student = Student::where('user_id', Auth::id())
+        ->where('isTemLeder', 1)
+        ->first();
 
+    if (!$student) {
         return response()->json([
-            'success' => true,
-            'message' => 'تم الرفع بنجاح',
-            'project' => $project
+            'success' => false,
+            'message' => 'غير مصرح لك ',
         ]);
     }
+
+    $project = Project::find($student->project_id);
+    if (!$project) {
+        return response()->json([
+            'success' => false,
+            'message' => 'لا يوجد مشروع بهذا الاسم',
+        ], 404);
+    }
+
+    $project->update([
+        'description' => $request->input('description'),
+        'videoUrl' => $request->input('videoUrl'),
+    ]);
+
+    if ($request->hasFile('pathDo')) {
+        $file = $request->file('pathDo');
+
+        // حفظ المستند
+        $docPath = $file->store('projects/documents', 'public');
+        $fullDocUrl = asset('storage/' . $docPath);
+
+        $project->document()->create([
+            'pathDo' => $fullDocUrl,
+        ]);
+
+        // توليد صورة الغلاف
+        try {
+            $pdfPath = $file->getRealPath();
+            $coverName = uniqid() . '.jpg';
+            $coverStoragePath = storage_path('app/public/projects/covers/' . $coverName);
+
+            // مسار Ghostscript الكامل حسب جهازك
+            $gsPath = '"C:\Program Files\gs\gs10.05.0\bin\gswin64c.exe"';
+
+            $command = "$gsPath -dNOPAUSE -dBATCH -sDEVICE=jpeg -r144 -dFirstPage=1 -dLastPage=1 -sOutputFile=\"$coverStoragePath\" \"$pdfPath\"";
+            exec($command, $output, $code);
+
+            if ($code === 0 && file_exists($coverStoragePath)) {
+                $coverUrl = asset('storage/projects/covers/' . $coverName);
+                $project->update([
+                    'cover_image' => $coverUrl,
+                ]);
+            } else {
+                \Log::error('Ghostscript فشل:', ['code' => $code, 'output' => $output]);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('فشل توليد الغلاف: ' . $e->getMessage());
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'تم الرفع بنجاح',
+        'project' => $project->fresh('document'),
+    ]);
+}
 
 
 public function store(Request $request){
