@@ -12,6 +12,7 @@ class Student extends Model
     protected $fillable = [
         'studentUnid',
         'isTemLeder',
+        'graduation_year',
         'user_id',
         'department_id',
         'project_id',
@@ -32,7 +33,7 @@ class Student extends Model
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
-  
+
 public function socialmedie()
 {
     return $this->hasMany(Socialmedie::class, 'student_id');

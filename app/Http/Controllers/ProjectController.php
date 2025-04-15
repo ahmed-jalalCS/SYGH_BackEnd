@@ -7,11 +7,14 @@ use App\Models\User;
 use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Log;
 use App\Models\LibrarayStaff;
+
 use App\Models\Project;
 use App\Models\Department;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use function PHPUnit\Framework\isEmpty;
@@ -53,7 +56,9 @@ class ProjectController extends Controller
         return response()->json($Projects);
     }
 
-
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
 
@@ -113,7 +118,6 @@ class ProjectController extends Controller
     ]);
 
     $validatedData = $validator->validate();
-
     $student = Student::where('user_id', Auth::id())
         ->where('isTemLeder', 1)
         ->first();
@@ -141,23 +145,21 @@ class ProjectController extends Controller
     if ($request->hasFile('pathDo')) {
         $file = $request->file('pathDo');
 
-        // حفظ المستند
-        $docPath = $file->store('projects/documents', 'public');
-        $fullDocUrl = asset('storage/' . $docPath);
+        if ($request->hasFile('pathDo')) {
+            $file = $request->file('pathDo');
+            $docPath = $file->store('projects/documents', 'public');
+            $fullDocUrl = asset('storage/' . $docPath);
+            $project->document()->updateOrCreate(
+                [], // No condition: will match existing related document if exists
+                ['pathDo' => $fullDocUrl]
+            );
+        }
 
-        $project->document()->create([
-            'pathDo' => $fullDocUrl,
-        ]);
-
-        // توليد صورة الغلاف
         try {
             $pdfPath = $file->getRealPath();
             $coverName = uniqid() . '.jpg';
             $coverStoragePath = storage_path('app/public/projects/covers/' . $coverName);
-
-            // مسار Ghostscript الكامل حسب جهازك
             $gsPath = '"C:\Program Files\gs\gs10.05.0\bin\gswin64c.exe"';
-
             $command = "$gsPath -dNOPAUSE -dBATCH -sDEVICE=jpeg -r144 -dFirstPage=1 -dLastPage=1 -sOutputFile=\"$coverStoragePath\" \"$pdfPath\"";
             exec($command, $output, $code);
 
@@ -167,11 +169,11 @@ class ProjectController extends Controller
                     'cover_image' => $coverUrl,
                 ]);
             } else {
-                \Log::error('Ghostscript فشل:', ['code' => $code, 'output' => $output]);
+                Log::error('Ghostscript فشل:', ['code' => $code, 'output' => $output]);
             }
 
         } catch (\Exception $e) {
-            \Log::error('فشل توليد الغلاف: ' . $e->getMessage());
+            Log::error('فشل توليد الغلاف: ' . $e->getMessage());
         }
     }
 
@@ -196,8 +198,9 @@ public function store(Request $request){
             ]);
 
             $validatedData = $validator->validate();
-
+            $validatedData['supervisorStatus']=1;
             $Project = Project::create($validatedData);
+
             return response()->json(['success' => true,'message'=>'تمت الاضافة بنجاح ', 'data' => $Project], 201);
 
         }catch (\Exception $e){
@@ -208,7 +211,9 @@ public function store(Request $request){
             ],500);
         }
         }
-
+    /**
+     * Display the specified resource.
+     */
      public function show(int  $id)
     {
 

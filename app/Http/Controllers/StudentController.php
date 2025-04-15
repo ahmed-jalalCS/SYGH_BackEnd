@@ -61,6 +61,7 @@ class StudentController extends Controller
                 'name' => 'required|max:255|string',
                 'studentUnid' => 'required|integer',
                 'isTemLeder' => 'required|integer',
+                'graduation_year'=>'required|integer',
                 'project_id' => 'required|integer',
                 'department_id' => 'required|integer',
             ]);
