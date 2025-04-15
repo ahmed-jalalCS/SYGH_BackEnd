@@ -129,19 +129,22 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
     Route::get('/dashboard/stats', 'getAdminDashboardStats');
     Route::controller(CollegeController::class)->group(function () {
        Route::get('/colleges', 'getAllColleges');
-       Route::post('/colleges/{id}', 'store');
+       Route::post('/colleges', 'store');
        Route::put('/colleges/{id}', 'update');
        Route::delete('/colleges/{id}', 'deleteCollege');
     });
 
     Route::controller(LibraryStaffController::class)->group(function (){
-       Route::get('/libraraystaffs','index');
+       Route::get('/libraraystaffs', 'getAllCollegeLibraryStaffs');
        Route::post('/colleges/{id}/addlibraraystaff','store');
        Route::delete('/colleges/{id}/deletelibraraystaff','destroy');
        Route::put('/colleges/{id}/updatelibraraystaff','update');
     });
 });
-Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum','libraraystaff'])->group(function (){
+Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum', 'libraraystaff'])->group(function () {
+
+    // import projects from excel file
+    Route::post('import-excel', 'importProjects');
 
     Route::get('/dashboard/stats','index');
     Route::get('/students/information','getAllStudents');

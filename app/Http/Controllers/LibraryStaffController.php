@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\College;
 use App\Models\Project;
+use App\Models\University;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Imports\ProjectImportLibraryStaff;
@@ -24,6 +25,39 @@ use function PHPUnit\Framework\isEmpty;
 
 class LibraryStaffController extends Controller
 {
+
+    public function getAllCollegeLibraryStaffs()
+    {
+        $userId = Auth::id();
+
+        $university = University::where('user_id', $userId)
+            ->select('id')
+            ->first();
+
+        if (!$university) {
+            return response()->json(['success' => false, 'message' => 'لايوجد كليات']);
+        }
+
+        // Fetch all college IDs in one step
+        $collegeIds = College::where('universitie_id', $university->id)
+            ->pluck('id');
+
+        if ($collegeIds->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'لايوجد كليات']);
+        }
+
+        // Eager-load user in same query for all library staff
+        $libraryStaffs = LibrarayStaff::with(['user:id,name,email'])
+            ->whereIn('college_id', $collegeIds)
+            ->get();
+
+        if ($libraryStaffs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'لايوجد موظفين مكتبة']);
+        }
+
+        return response()->json(['success' => true, 'data' => $libraryStaffs]);
+    }
+
 
     public function index()
     {
@@ -274,7 +308,7 @@ class LibraryStaffController extends Controller
                                          ->value('id');
             if ($libraryStaff) {
                 return response()->json([
-                    'success' => true,
+                    'success' => false,
                     'message' => 'يوجد بالفعل مسؤول مكتبة'
                 ], 200);
             }
@@ -294,8 +328,7 @@ class LibraryStaffController extends Controller
             $user = User::create($ValidateData);
             $addlibraraystaff=LibrarayStaff::create([
                 'user_id'=>$user->id,
-                'college_id'=>$college->id,
-                'isSuperAdmin'=>1
+                'college_id'=>$college->id
             ]);
             return response()->json([
              'success'=>true,
@@ -395,7 +428,7 @@ class LibraryStaffController extends Controller
             ], 401);
         }
 
-        $libraryStaff = LibraryStaff::where('user_id', $user->id)->first();
+        $libraryStaff = LibrarayStaff::where('user_id', $user->id)->first();
         if (!$libraryStaff) {
             return response()->json([
                 'success' => false,

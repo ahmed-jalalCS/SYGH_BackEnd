@@ -18,6 +18,7 @@ return new class extends Migration
                 ->update(['role_id' => $roleId]);
         }
 
+
         // Then remove the role column
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('role');
