@@ -54,28 +54,57 @@ class CollegeController extends Controller
 
     }
 
-    public function store(Request $request, int $id)
+    // public function store(Request $request, int $id)
+    // {
+    //     try {
+    //         $university = University::find($id);
+    //         if (!$university) {return response()->json(['success'=>false,'message'=>'لاتوجد هذه الجامعة']);}
+
+    //         if (Auth::user()->id!==$university->user_id) {return response()->json(['error' => 'غير مصرح بك '], 403);}
+    //         $validator=Validator::make($request->all(), [
+    //            'name' => 'required |string|max:255',
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return response()->json(['error'=>$validator->errors()], 401);
+    //         }
+
+    //         $validatedData=$validator->validated();
+    //         $validatedData['universitie_id']=$university->id;
+    //         $collegeData= College::create($validatedData);
+    //         return response()->json(['success' => true,'message' => 'تمت الإضافة بنجاح'],200);
+    //     }catch (\Exception $e){
+    //         return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء التعديل ', 'error'=>$e->getMessage()], 500);
+
+    //     }
+    // }
+
+    public function store(Request $request)
     {
         try {
-            $university = University::find($id);
-            if (!$university) {return response()->json(['success'=>false,'message'=>'لاتوجد هذه الجامعة']);}
+            $university = University::where('user_id', Auth::user()->id)->get()->first();
+            if (!$university) {
+                return response()->json(['success' => false, 'message' => 'لاتوجد هذه الجامعة']);
+            }
 
-            if (Auth::user()->id!==$university->user_id) {return response()->json(['error' => 'غير مصرح بك '], 403);}
-            $validator=Validator::make($request->all(), [
-               'name' => 'required |string|max:255',
+            if (Auth::user()->id !== $university->user_id) {
+                return response()->json(['error' => 'غير مصرح بك '], 403);
+            }
+            $validator = Validator::make($request->all(), [
+                'name' => 'required |string|max:255',
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['error'=>$validator->errors()], 401);
+                return response()->json(['error' => $validator->errors()], 401);
             }
 
-            $validatedData=$validator->validated();
-            $validatedData['universitie_id']=$university->id;
-            $collegeData= College::create($validatedData);
-            return response()->json(['success' => true,'message' => 'تمت الإضافة بنجاح'],200);
-        }catch (\Exception $e){
-            return response()->json(['success'=>false,'message'=>'حدث خطاء اثناء التعديل ', 'error'=>$e->getMessage()], 500);
+            $validatedData = $validator->validated();
 
+            $validatedData['universitie_id'] = $university->id;
+            $collegeData = College::create($validatedData);
+            return response()->json(['success' => true, 'message' => 'تمت الإضافة بنجاح'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'حدث خطاء اثناء التعديل ', 'error' => $e->getMessage()], 500);
         }
     }
     public function showAdmin(int $id)
@@ -126,7 +155,7 @@ class CollegeController extends Controller
             if(Auth::user()->id!==$college->university->user_id){
                 return response()->json(['error' => 'غير مصرح لفعل هذه العملية'], 403);
             }
-            if ($college->departments()->count() > 0) {
+            if ($college->department()->count() > 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'لايمكن حذف هذه الكيلة'
