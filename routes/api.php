@@ -133,19 +133,21 @@ Route::prefix('/admin')->controller(AdminController::class)->middleware(['auth:s
        Route::put('/colleges/{id}', 'update');
        Route::delete('/colleges/{id}', 'deleteCollege');
     });
+
     Route::controller(LibraryStaffController::class)->group(function (){
        Route::get('/libraraystaffs','index');
        Route::post('/colleges/{id}/addlibraraystaff','store');
        Route::delete('/colleges/{id}/deletelibraraystaff','destroy');
        Route::put('/colleges/{id}/updatelibraraystaff','update');
-
     });
 });
 Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middleware(['auth:sanctum','libraraystaff'])->group(function (){
 
-    Route::get('/','index');
+    Route::get('/dashboard/stats','index');
     Route::get('/students/information','getAllStudents');
     Route::get('/supervisors/information','getAllSupervisors');
+    Route::get('/projects/status','getAllProjectsstatus');
+    Route::put('/projects/active/{id}','ActiveProject');
     Route::controller(DepartmentController::class)->group(function (){
         Route::get('/departments', 'getAllDepartments');
         Route::post('/departments', 'store');
@@ -159,14 +161,14 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
         Route::put('/supervisors/{id}', 'update');
         Route::delete('/supervisors/{id}', 'destroy');
     });
-    Route::controller(StudentController::class)->group(function (){
-
+        Route::controller(StudentController::class)->group(function (){
         Route::get('/students', 'index');
         Route::post('/students', 'store');
         Route::put('/students/{id}', 'update');
         Route::delete('/students/{id}', 'destroy');
-
     });
+
+
     Route::controller(ProjectController::class)->group(function (){
         Route::get('/projects', 'getAllProjects');
         Route::post('/projects', 'store');

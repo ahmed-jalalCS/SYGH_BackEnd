@@ -166,6 +166,8 @@ class LibraryStaffController extends Controller
             $formattedProjects = $students->map(function ($students) {
                 return [
                     'id' => $students->id,
+                    'graduation_year'=>$students->graduation_year,
+                    'isTemLeder'=>$students->isTemLeder,
                     'name' => $students->user->name,
                     'email' => $students->user->email,
                     'plain_password' => $students->user->plain_password ?? null
@@ -194,6 +196,66 @@ class LibraryStaffController extends Controller
             'success' => true,
             'data' => $supervisor
         ]);
+    }
+
+    public function getAllProjectsstatus(Request $request)
+    {
+
+        try {
+            $projects = Project::with(['document','students.user:id,name'])
+                ->where('lbraryStatus', 0)
+                ->whereIn('department_id', $this->departmentId())
+                ->get();
+            $formattedProjects = $projects->map(function ($project) {
+                $leader = $project->students->firstWhere('isTemLeder', 1);
+                return [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'description' => $project->description,
+                    'projectYear' => $project->projectYear,
+                    'pathDo' => optional($project->document)->pathDo, // ✅ حماية من n
+                    'student_name' => optional($leader->user ?? null)->name,
+                ];
+            });
+            return response()->json([
+                'success' => true,
+                'data' => $formattedProjects
+            ], 200);
+        }   catch (\Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء المعالجة ',
+                'error' => $exception->getMessage()
+            ],500);
+        }
+
+
+    }
+
+    public function ActiveProject(Request $request,$id)
+    {
+
+        $project = Project::findOrFail($id); // Get the actual Project model
+        $project->update(['lbraryStatus' => 1]); // Update its status
+        $project->students()->update(['isTemLeder' => 0]); // Use relationship method (with parentheses) to update related student
+        if ($project)
+        {
+            return response()->json([
+
+                'success' => true,
+                'message'=>'تم التفعيل بنجاح'
+            ]);
+        }
+
+        else
+        {
+            return response()->json([
+                'success' => false,
+                'meesage'=>'حدث خطاء اثناء التفعيل '
+            ]);
+        }
+
+
     }
     public function create()
     {
