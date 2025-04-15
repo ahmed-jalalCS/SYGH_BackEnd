@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
-<<<<<<< Updated upstream
 use Spatie\PdfToImage\Pdf;
 use Illuminate\Support\Facades\Log;
-=======
->>>>>>> Stashed changes
 use App\Models\LibrarayStaff;
 use App\Models\Project;
 use App\Models\Department;
@@ -22,20 +19,12 @@ use function PHPUnit\Framework\isEmpty;
 
 class ProjectController extends Controller
 {
-<<<<<<< Updated upstream
     /**
      * Display a listing of the resource.
      */
    public function index()
 {
     $projects = Project::with(['evaluates', 'document']) // تحميل العلاقة
-=======
-
-    public function index()
-    {
-        $projects = Project::with('evaluates')
-        ->select('id', 'title', 'description', 'projectYear')
->>>>>>> Stashed changes
         ->where('lbraryStatus', 1)
         ->where('supervisorStatus', 1)
         ->get()

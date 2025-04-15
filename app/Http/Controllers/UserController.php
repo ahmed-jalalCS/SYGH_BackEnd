@@ -76,7 +76,7 @@ class UserController extends Controller
         if($supervisor){
             return response()->json(['successes'=>true,'data'=>$supervisor],200);
         }
-        $student=User::with('students','students.socialmedies') ->where('id',Auth::id())
+        $student=User::with('students','students.socialmedie') ->where('id',Auth::id())
                       ->where('role_id',5) ->first();
         if($student){
             return response()->json(['successes'=>true,'data'=>$student],200);
@@ -95,132 +95,109 @@ class UserController extends Controller
         //
     }
 
-    public function update(Request $request)
-    {
+   public function update(Request $request)
+{
+    $roles = [
+        1 => 'superAdmin',
+        2 => 'admin',
+        3 => 'librarystaff',
+        4 => 'supervisor',
+        5 => 'student',
+        6 => 'user',
+    ];
 
-        $superAdmin=User::where('id',Auth::id())
-            ->where('role_id',1) ->first();
-        if($superAdmin){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable',
-                    'password' => 'nullable|min:10',
-                ]);
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $superAdmin->update($validatedData);
-                return response()->json([
-                    'success' => true,
-                    'data' => $superAdmin
-                ], 200);
-        }
+    $user = User::with(['students.socialmedie', 'supervisors', 'librarystaffs'])
+        ->where('id', Auth::id())
+        ->first();
 
-        $admin=User::where('id',Auth::id())->where('role_id',2) ->first();
-        if($admin){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable',
-                    'password' => 'nullable|min:10',
-                ]);
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $admin->update($validatedData);
-                return response()->json([
-                    'success' => true,
-                    'data' => $admin
-                ], 200);
-        }
-        $librarystaff=User::with('librarystaffs') ->where('id',Auth::id())
-            ->where('role_id',3) ->first();
-        if($librarystaff){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable',
-                    'password' => 'nullable|min:10',
-                ]);
-
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $librarystaff->update($validatedData);
-                return response()->json([
-                    'success' => true,
-                    'data' => $librarystaff
-                ], 200);
-        }
-        $supervisor=User::with('supervisors') ->where('id',Auth::id())
-            ->where('role_id',4) ->first();
-        if($supervisor){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable',
-                    'password' => 'nullable|min:10',
-                    'supervisorDgree' => 'nullable|string|max:255',
-                ]);
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $supervisorDegree = $validatedData['supervisorDgree'] ?? null;
-                unset($validatedData['supervisorDgree']);
-                $supervisor->update($validatedData);
-                if ($supervisorDegree !== null && $supervisor->supervisors) {
-                    $supervisor->supervisors->update([
-                        'supervisorDgree' => $supervisorDegree
-                    ]);
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'data' => $supervisor->load('supervisors') // reload relation
-                ], 200);
-        }
-        $student=User::with('students','students.socialmedies') ->where('id',Auth::id())
-            ->where('role_id',5) ->first();
-        if($student){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable|string|max:255',
-                    'password' => 'nullable|min:10',
-                    'linkes' => 'nullable|url', // Assuming linkes is a URL
-                ]);
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $linkes = $validatedData['linkes'] ?? null;
-                unset($validatedData['linkes']);
-                $student->update($validatedData);
-                if ($linkes !== null && $student->students && $student->students->socialmedies) {
-                    $student->students->socialmedies->update([
-                        'linkes' => $linkes
-                    ]);
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'data' => $student->load('students.socialmedies')
-                ], 200);
-
-        }
-        $user=User::where('id',Auth::id())
-            ->where('role_id',6) ->first();
-        if($user){
-                $validator = Validator::make($request->all(), [
-                    'name' => 'nullable|string|max:255',
-                    'password' => 'nullable|min:10',
-                ]);
-                $validatedData = $validator->validated();
-                if (isset($validatedData['password'])) {
-                    $validatedData['password'] = Hash::make($validatedData['password']);
-                }
-                $user->update($validatedData);
-                return response()->json([
-                    'success' => true,
-                    'data' => $user
-                ], 200);
-        }
+    if (!$user || !array_key_exists($user->role_id, $roles)) {
+        return response()->json(['success' => false, 'message' => 'User not found or invalid role'], 404);
     }
+
+    $rules = [
+        'name' => 'nullable|string|max:255',
+        'old_password' => 'required_with:password|string',
+        'password' => 'nullable|string|min:10|confirmed',
+    ];
+
+    if ($user->role_id == 4) {
+        $rules['supervisorDgree'] = 'nullable|string|max:255';
+    }
+
+    if ($user->role_id == 5) {
+        $rules['linkes'] = 'nullable|url';
+    }
+
+    $validator = Validator::make($request->all(), $rules);
+    if ($validator->fails()) {
+        return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+    }
+
+    $validatedData = $validator->validated();
+
+    // Handle password update
+    if (isset($validatedData['password'])) {
+        if (!Hash::check($validatedData['old_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'كلمة المرور القديمة غير صحيحة',
+            ], 422);
+        }
+        $validatedData['password'] = Hash::make($validatedData['password']);
+    }
+
+    unset($validatedData['old_password']);
+
+    // Role-specific handling
+    if ($user->role_id == 4) {
+        $supervisorDegree = $validatedData['supervisorDgree'] ?? null;
+        unset($validatedData['supervisorDgree']);
+    }
+
+    if ($user->role_id == 5) {
+        $linkes = $validatedData['linkes'] ?? null;
+        unset($validatedData['linkes']);
+    }
+
+    // Update user
+    $user->update($validatedData);
+
+    // Handle related tables
+    if ($user->role_id == 4 && isset($supervisorDegree) && $user->supervisors) {
+        $user->supervisors->update(['supervisorDgree' => $supervisorDegree]);
+    }
+
+if ($user->role_id == 5) {
+    $linkes = $validatedData['linkes'] ?? null;
+    unset($validatedData['linkes']);
+}
+
+// بعد تحديث المستخدم
+$user->update($validatedData);
+
+// تحديث الرابط الاجتماعي إن وُجد
+if ($user->role_id == 5 && isset($linkes) && $user->students->isNotEmpty()) {
+    $student = $user->students->first();
+    $social = $student->socialmedie->first(); // لأنها hasMany
+    if ($social) {
+        $social->update(['linkes' => $linkes]);
+    }
+}
+
+
+    // Reload relations based on role
+    $relations = match ($user->role_id) {
+        3 => ['librarystaffs'],
+        4 => ['supervisors'],
+        5 => ['students.socialmedie'],
+        default => [],
+    };
+
+    return response()->json([
+        'success' => true,
+        'data' => $user->load($relations)
+    ], 200);
+}
 
     public function destroy()
     {
