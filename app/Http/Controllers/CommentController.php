@@ -23,13 +23,14 @@ class CommentController extends Controller
     {
 
         $data=$request->validate(['body'=>'required']);
-        $project->comments()->create([
+        $project_comment=$project->comments()->create([
             'body' => $data['body'],
             'user_id' =>Auth::user()->id,
         ]);
+ 
         return response()->json([
             'state'=>'success',
-            'message'=>'تم بنجاح ',
+            'id'=>$project_comment->id,
         ]);
     }
 
