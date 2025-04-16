@@ -248,7 +248,7 @@ class LibraryStaffController extends Controller
                     'title' => $project->title,
                     'description' => $project->description,
                     'projectYear' => $project->projectYear,
-                    'pathDo' => optional($project->document)->pathDo, // ✅ حماية من n
+                    'pathDo' => optional($project->document)->pathDo, 
                     'student_name' => optional($leader->user ?? null)->name,
                 ];
             });
