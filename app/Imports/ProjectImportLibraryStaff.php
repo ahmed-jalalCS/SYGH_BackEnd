@@ -120,7 +120,8 @@ class ProjectImportLibraryStaff implements ToCollection
                     [
                         'name' => $studentName,
                         'password' => Hash::make('password'),
-                        'role_id' => $studentRole->id
+                        'role_id' => $studentRole->id,
+                        'graduation_year'=>now()->year,
                     ]
                 );
 

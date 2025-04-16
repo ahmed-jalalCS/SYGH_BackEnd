@@ -59,9 +59,10 @@ class StudentController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|max:255|string',
+                'email' => 'required|email|max:255|unique:users,email',
                 'studentUnid' => 'required|integer',
                 'isTemLeder' => 'required|integer',
-                'graduation_year'=>'required|integer',
+                'graduation_year'=>'integer',
                 'project_id' => 'required|integer',
                 'department_id' => 'required|integer',
             ]);
@@ -70,11 +71,12 @@ class StudentController extends Controller
             }
 
             $validatedData = $validator->validate();
-            $validatedData['email'] = Str::random(8) . '@gmail.com';
+            // $validatedData['email'] = Str::random(8) . '@gmail.com';
             $rawPassword = Str::random(12);
             $validatedData['plain_password']= $rawPassword;
             $validatedData['password'] = Hash::make($rawPassword);
             $validatedData['role_id'] = 5;
+            
 
             $userData = User::create($validatedData);
             $validatedData['user_id'] = $userData->id;
@@ -116,7 +118,7 @@ class StudentController extends Controller
 
             $validated = $validator->validate();
             $updateUserData = [];
-            $updateUserData['plain_password'] =$validated['password'] ?? '';
+            $updateUserData['plain_password'] =$validated['password'] ?? $student->user->plain_password;
             if (isset($validated['name'])) {
                 $updateUserData['name'] = $validated['name'];
             }

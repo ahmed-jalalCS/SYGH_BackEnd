@@ -151,6 +151,8 @@ Route::prefix('librarayStaff')->controller(LibraryStaffController::class)->middl
     Route::get('/supervisors/information','getAllSupervisors');
     Route::get('/projects/status','getAllProjectsstatus');
     Route::put('/projects/active/{id}','ActiveProject');
+
+
     Route::controller(DepartmentController::class)->group(function (){
         Route::get('/departments', 'getAllDepartments');
         Route::post('/departments', 'store');

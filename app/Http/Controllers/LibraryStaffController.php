@@ -195,13 +195,14 @@ class LibraryStaffController extends Controller
 
         try {
 
-            $students=Student::with('user')->whereIn('department_id', $this->departmentId())->get();
+            $students=Student::with('user','department:id,name', 'project:id,projectYear')->whereIn('department_id', $this->departmentId())->get();
 
             $formattedProjects = $students->map(function ($students) {
                 return [
                     'id' => $students->id,
-                    'graduation_year'=>$students->graduation_year,
                     'isTemLeder'=>$students->isTemLeder,
+                    'department' => $students->department->name,
+                    'graduation_year' => $students->project->projectYear,
                     'name' => $students->user->name,
                     'email' => $students->user->email,
                     'plain_password' => $students->user->plain_password ?? null
@@ -225,7 +226,7 @@ class LibraryStaffController extends Controller
     public  function getAllSupervisors(Request $request)
     {
         $librarystaff = LibrarayStaff::where('user_id', Auth::id())->value('college_id');
-        $supervisor=Supervisor::with('user:id,email,plain_password')->where('college_id',$librarystaff)->get();
+        $supervisor=Supervisor::with('user:id,name,email,plain_password')->where('college_id',$librarystaff)->get();
         return response()->json([
             'success' => true,
             'data' => $supervisor
@@ -270,7 +271,7 @@ class LibraryStaffController extends Controller
     {
 
         $project = Project::findOrFail($id); // Get the actual Project model
-        $project->update(['lbraryStatus' => 1]); // Update its status
+        $project->update(['lbraryStatus' => 1, 'supervisorStatus'=> 1]); // Update its status
         $project->students()->update(['isTemLeder' => 0]); // Use relationship method (with parentheses) to update related student
         if ($project)
         {

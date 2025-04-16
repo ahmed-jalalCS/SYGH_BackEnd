@@ -137,7 +137,7 @@ class SupervisorController extends Controller
             ]);
         }
 
-        $libraryStaff = LibrarayStaff::where('college_id', $supervisor->college_id)
+        $libraryStaff = LibrarayStaff::with('user')->where('college_id', $supervisor->college_id)
             ->where('user_id', Auth::id())
             ->get();
 
@@ -163,7 +163,7 @@ class SupervisorController extends Controller
         }
 
         $validatedData = $validator->validate();
-        $validatedData['plain_password'] =$validatedData['password'] ?? '';
+        $validatedData['plain_password'] = $validatedData['password'] ?? $supervisor->user->plain_password;
         if (!empty($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
         } else {
